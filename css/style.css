@@ -1215,6 +1215,247 @@ html, body {
   text-decoration: underline;
 }
 
+/* ---------- Menu Upload & Menu Items ---------- */
+
+.menu-upload-box,
+.menu-builder {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-upload-box {
+  background: var(--base);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.menu-upload-dropzone {
+  border: 2px dashed var(--line);
+  border-radius: 8px;
+  padding: 18px 12px;
+  text-align: center;
+  cursor: pointer;
+  background: var(--card);
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.menu-upload-dropzone:hover {
+  border-color: var(--teal);
+  background: rgba(47, 111, 94, 0.04);
+}
+
+.menu-upload-icon {
+  font-size: 24px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.menu-upload-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.menu-upload-sub {
+  font-size: 11px;
+  color: var(--ink-soft);
+  display: block;
+  margin-top: 2px;
+}
+
+.menu-upload-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.menu-upload-preview-thumb {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--base);
+}
+
+.menu-upload-preview-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-upload-preview-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-remove-menu-image {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  width: fit-content;
+}
+
+.btn-remove-menu-image:hover {
+  text-decoration: underline;
+}
+
+.menu-builder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-item-row {
+  background: var(--base);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-item-header label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.menu-item-remove-row {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.menu-item-remove-row:hover {
+  color: #dc2626;
+}
+
+.menu-item-main {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.menu-item-photo-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.menu-item-photo-trigger {
+  width: 72px;
+  min-height: 72px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.menu-item-preview-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px;
+  min-height: 42px;
+}
+
+.menu-item-preview-image {
+  width: 38px;
+  height: 38px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--base);
+}
+
+.menu-item-preview-name {
+  font-size: 10px;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-item-field-wrap {
+  display: grid;
+  grid-template-columns: 1fr 94px;
+  gap: 8px;
+}
+
+.menu-item-name,
+.menu-item-price {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+  font-size: 13px;
+  font-family: var(--font-body);
+}
+
+.menu-item-price {
+  text-align: right;
+}
+
+.btn-add-menu-item {
+  border: 1px dashed var(--teal);
+  background: rgba(47, 111, 94, 0.04);
+  color: var(--teal);
+  height: 38px;
+  border-radius: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-add-menu-item:hover {
+  background: rgba(47, 111, 94, 0.08);
+}
+
 /* ---------- Mobile ---------- */
 
 @media (max-width: 640px) {
