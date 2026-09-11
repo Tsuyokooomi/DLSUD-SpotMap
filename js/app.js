@@ -76,28 +76,38 @@ function openCard(place) {
   const menuWrap = node.querySelector(".place-card-menu");
   const menuList = node.querySelector(".place-card-menu-list");
   const menuItems = Array.isArray(place.menuItems) ? place.menuItems : [];
-  if (menuItems.length > 0 && menuWrap && menuList) {
+  if (menuWrap && menuList) {
     menuList.innerHTML = "";
-    menuWrap.style.display = "block";
-    menuItems.forEach(item => {
-      const card = document.createElement("div");
-      card.className = "place-card-menu-item";
-      const safeName = (item && item.name) ? item.name : "Menu item";
-      const safePrice = (item && item.price) ? item.price : "";
-      const displayPrice = safePrice.startsWith("₱") ? safePrice : (safePrice ? `₱${safePrice}` : "Price available");
-      const hasImage = item && item.imageUrl;
-      card.innerHTML = `
-        ${hasImage ? `<img class="place-card-menu-thumb" src="${item.imageUrl}" alt="${escapeHtml(safeName)}" loading="lazy">` : '<div class="place-card-menu-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:11px;background:var(--card);">No pic</div>'}
-        <div class="place-card-menu-item-info">
-          <div class="place-card-menu-item-name">${escapeHtml(safeName)}</div>
-          <div class="place-card-menu-item-price">${displayPrice}</div>
-        </div>
-        <div style="font-size:12px;color:var(--ink-soft);"></div>
-      `;
-      menuList.appendChild(card);
-    });
-  } else if (menuWrap) {
-    menuWrap.style.display = "none";
+    const hasMenuImage = Boolean(place.menuImageUrl);
+    const hasMenuList = menuItems.length > 0;
+    if (hasMenuImage || hasMenuList) {
+      menuWrap.style.display = "block";
+      if (hasMenuImage) {
+        const banner = document.createElement("div");
+        banner.className = "place-card-menu-banner";
+        banner.innerHTML = `<img src="${place.menuImageUrl}" alt="Menu image" style="width:100%;height:180px;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block;">`;
+        menuList.appendChild(banner);
+      }
+      menuItems.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "place-card-menu-item";
+        const safeName = (item && item.name) ? item.name : "Menu item";
+        const safePrice = (item && item.price) ? item.price : "";
+        const displayPrice = safePrice.startsWith("₱") ? safePrice : (safePrice ? `₱${safePrice}` : "Price available");
+        const hasImage = item && item.imageUrl;
+        card.innerHTML = `
+          ${hasImage ? `<img class="place-card-menu-thumb" src="${item.imageUrl}" alt="${escapeHtml(safeName)}" loading="lazy">` : '<div class="place-card-menu-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:11px;background:var(--card);">No pic</div>'}
+          <div class="place-card-menu-item-info">
+            <div class="place-card-menu-item-name">${escapeHtml(safeName)}</div>
+            <div class="place-card-menu-item-price">${displayPrice}</div>
+          </div>
+          <div style="font-size:12px;color:var(--ink-soft);"></div>
+        `;
+        menuList.appendChild(card);
+      });
+    } else {
+      menuWrap.style.display = "none";
+    }
   }
 
   // Image handling in place card
@@ -601,6 +611,13 @@ const placeModalError = document.getElementById("placeModalError");
 const placeSubmitBtn = document.getElementById("placeSubmitBtn");
 const menuBuilderList = document.getElementById("menuBuilderList");
 const addMenuItemBtn = document.getElementById("addMenuItemBtn");
+const menuImageUrlInput = document.getElementById("menuImageUrlInput");
+const menuFileInput = document.getElementById("menuFileInput");
+const menuUploadDropzone = document.getElementById("menuUploadDropzone");
+const menuUploadPreview = document.getElementById("menuUploadPreview");
+const menuUploadPreviewImg = document.getElementById("menuUploadPreviewImg");
+const menuUploadPreviewName = document.getElementById("menuUploadPreviewName");
+const removeMenuImageBtn = document.getElementById("removeMenuImageBtn");
 let menuItemIdCounter = 0;
 const menuItemFiles = new Map();
 
@@ -783,6 +800,59 @@ if (restorePlaceModalBtn) {
 if (closeMinimizedPlaceBtn) {
   closeMinimizedPlaceBtn.addEventListener("click", () => {
     closePlaceModal();
+  });
+}
+
+function resetMenuImagePicker() {
+  if (menuImageUrlInput) menuImageUrlInput.value = "";
+  if (menuFileInput) menuFileInput.value = "";
+  if (menuUploadDropzone) menuUploadDropzone.style.display = "block";
+  if (menuUploadPreview) menuUploadPreview.style.display = "none";
+}
+
+function showMenuImagePreviewLocal(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    if (menuUploadPreviewImg) menuUploadPreviewImg.src = reader.result;
+    if (menuUploadPreviewName) menuUploadPreviewName.textContent = file.name;
+    if (menuUploadDropzone) menuUploadDropzone.style.display = "none";
+    if (menuUploadPreview) menuUploadPreview.style.display = "flex";
+  };
+  reader.readAsDataURL(file);
+}
+
+if (menuUploadDropzone && menuFileInput) {
+  menuUploadDropzone.addEventListener("click", () => menuFileInput.click());
+  menuUploadDropzone.addEventListener("dragover", e => {
+    e.preventDefault();
+    menuUploadDropzone.style.borderColor = "var(--teal)";
+    menuUploadDropzone.style.background = "rgba(47, 111, 94, 0.04)";
+  });
+  menuUploadDropzone.addEventListener("dragleave", () => {
+    menuUploadDropzone.style.borderColor = "";
+    menuUploadDropzone.style.background = "";
+  });
+  menuUploadDropzone.addEventListener("drop", e => {
+    e.preventDefault();
+    menuUploadDropzone.style.borderColor = "";
+    menuUploadDropzone.style.background = "";
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file && file.type && file.type.startsWith("image/")) {
+      showMenuImagePreviewLocal(file);
+    }
+  });
+  menuFileInput.addEventListener("change", () => {
+    const file = menuFileInput.files && menuFileInput.files[0];
+    if (file) {
+      showMenuImagePreviewLocal(file);
+    }
+  });
+}
+
+if (removeMenuImageBtn) {
+  removeMenuImageBtn.addEventListener("click", e => {
+    e.preventDefault();
+    resetMenuImagePicker();
   });
 }
 
@@ -993,6 +1063,18 @@ function openPlaceModal(editPlace = null) {
       resetImagePicker();
     }
 
+    if (menuImageUrlInput && menuUploadPreviewImg && menuUploadDropzone && menuUploadPreview && menuUploadPreviewName) {
+      if (editPlace.menuImageUrl) {
+        menuImageUrlInput.value = editPlace.menuImageUrl;
+        menuUploadPreviewImg.src = editPlace.menuImageUrl;
+        menuUploadPreviewName.textContent = "Existing menu image";
+        menuUploadDropzone.style.display = "none";
+        menuUploadPreview.style.display = "flex";
+      } else {
+        resetMenuImagePicker();
+      }
+    }
+
     resetMenuBuilder();
     const existingMenuItems = Array.isArray(editPlace.menuItems) ? editPlace.menuItems : [];
     if (existingMenuItems.length === 0) {
@@ -1016,6 +1098,7 @@ function openPlaceModal(editPlace = null) {
     locationStatusText.textContent = "No location selected (use buttons below)";
     removePickerMarker();
     resetImagePicker();
+    resetMenuImagePicker();
     resetMenuBuilder();
     buildMenuItemRow();
   }
@@ -1069,17 +1152,23 @@ placeForm.addEventListener("submit", async e => {
       imageUrl = await uploadToCloudinary(file);
     }
 
+    let menuImageUrl = menuImageUrlInput ? menuImageUrlInput.value.trim() : "";
+    const menuFile = menuFileInput && menuFileInput.files && menuFileInput.files[0];
+    if (menuFile) {
+      menuImageUrl = await uploadToCloudinary(menuFile);
+    }
+
     const menuItems = [];
     const rows = Array.from(menuBuilderList.querySelectorAll(".menu-item-row"));
     for (const row of rows) {
       const itemName = row.querySelector(".menu-item-name")?.value.trim() || "";
       const priceValue = row.querySelector(".menu-item-price")?.value.trim() || "";
-      const menuImageUrl = row.dataset.imageUrl || "";
-      const menuFile = menuItemFiles.get(row.dataset.menuId);
+      const menuImageUrlForItem = row.dataset.imageUrl || "";
+      const menuFileForItem = menuItemFiles.get(row.dataset.menuId);
 
-      let finalImageUrl = menuImageUrl;
-      if (menuFile) {
-        finalImageUrl = await uploadToCloudinary(menuFile);
+      let finalImageUrl = menuImageUrlForItem;
+      if (menuFileForItem) {
+        finalImageUrl = await uploadToCloudinary(menuFileForItem);
       }
 
       if (itemName || priceValue || finalImageUrl) {
@@ -1091,7 +1180,7 @@ placeForm.addEventListener("submit", async e => {
       }
     }
 
-    const payload = { name, category, tags, lat, lng, address, description, imageUrl, menuItems };
+    const payload = { name, category, tags, lat, lng, address, description, imageUrl, menuImageUrl, menuItems };
 
     placeSubmitBtn.textContent = "Saving...";
 
