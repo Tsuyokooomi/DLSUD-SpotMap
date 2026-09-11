@@ -429,6 +429,75 @@ document.addEventListener("click", e => {
   }
 });
 
+// ---------- Mobile Search (overlays map below filters) ----------
+
+const mobileSearchInput = document.getElementById("mobileSearchInput");
+const mobileSearchResults = document.getElementById("mobileSearchResults");
+
+function runMobileSearch() {
+  const query = mobileSearchInput.value.trim().toLowerCase();
+  mobileSearchResults.innerHTML = "";
+
+  if (!query) {
+    mobileSearchResults.classList.remove("open");
+    return;
+  }
+
+  const matches = places.filter(p => {
+    const nameMatch = p.name.toLowerCase().includes(query);
+    const tags = p.tags || [];
+    const tagMatch = tags.some(t => t.toLowerCase().includes(query));
+    return nameMatch || tagMatch;
+  });
+
+  if (matches.length === 0) {
+    mobileSearchResults.innerHTML = `<div class="mobile-search-empty">No places match "${query}".</div>`;
+    mobileSearchResults.classList.add("open");
+    return;
+  }
+
+  matches.forEach(place => {
+    const item = document.createElement("div");
+    item.className = "mobile-search-result";
+    item.innerHTML = `
+      <span class="chip-dot dot-${place.category}"></span>
+      <div class="mobile-search-result-info">
+        <div class="mobile-search-result-name">${place.name}</div>
+        <div class="mobile-search-result-meta">${place.category} · ${(place.tags || []).join(", ")}</div>
+      </div>
+    `;
+    item.addEventListener("click", () => {
+      map.panTo([place.lat, place.lng]);
+      openCard(place);
+      mobileSearchResults.classList.remove("open");
+    });
+    mobileSearchResults.appendChild(item);
+  });
+
+  mobileSearchResults.classList.add("open");
+}
+
+function closeMobileSearch() {
+  mobileSearchResults.classList.remove("open");
+  mobileSearchResults.innerHTML = "";
+  mobileSearchInput.value = "";
+}
+
+const mobileSearchBtn = document.getElementById("mobileSearchBtn");
+if (mobileSearchBtn) {
+  mobileSearchBtn.addEventListener("click", runMobileSearch);
+}
+if (mobileSearchInput) {
+  mobileSearchInput.addEventListener("keydown", e => { if (e.key === "Enter") runMobileSearch(); });
+}
+document.addEventListener("click", e => {
+  if (mobileSearchResults && mobileSearchResults.classList.contains("open")) {
+    if (!e.target.closest(".mobile-search-bar")) {
+      mobileSearchResults.classList.remove("open");
+    }
+  }
+});
+
 // ---------- Tag Filter Panel ----------
 
 function refreshAllTags() {
