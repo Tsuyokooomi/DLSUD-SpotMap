@@ -429,6 +429,62 @@ html, body {
   margin: 0 0 20px 0;
 }
 
+.place-card-menu {
+  margin: 0 0 22px 0;
+}
+
+.place-card-menu h3 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin: 0 0 10px 0;
+}
+
+.place-card-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.place-card-menu-item {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  background: var(--base);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.place-card-menu-thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+
+.place-card-menu-item-info {
+  min-width: 0;
+}
+
+.place-card-menu-item-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 2px 0;
+}
+
+.place-card-menu-item-price {
+  font-size: 12px;
+  color: var(--teal);
+  font-weight: 700;
+}
+
 .place-card-tags {
   display: flex;
   flex-wrap: wrap;

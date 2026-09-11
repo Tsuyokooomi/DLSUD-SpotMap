@@ -27,10 +27,10 @@ router.get("/:id", async (req, res) => {
 // POST /api/places - admin only
 router.post("/", requireAuth, requireAdmin, async (req, res) => {
   try {
-    const { name, category, tags, lat, lng, address, description, imageUrl } = req.body;
+    const { name, category, tags, lat, lng, address, description, imageUrl, menuItems } = req.body;
 
     const place = await Place.create({
-      name, category, tags, lat, lng, address, description, imageUrl,
+      name, category, tags, lat, lng, address, description, imageUrl, menuItems,
       createdBy: req.user.id
     });
 
