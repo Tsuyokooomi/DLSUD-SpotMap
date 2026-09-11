@@ -812,6 +812,56 @@ html, body {
   flex-shrink: 0;
 }
 
+.review-panel-item-desc {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.review-panel-item-coords {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--teal);
+  margin-top: 6px;
+  background: rgba(47, 111, 94, 0.06);
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.review-panel-item-img {
+  width: 100%;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 8px;
+  border: 1px solid var(--line);
+}
+
+.review-panel-item-menu {
+  font-size: 12px;
+  color: var(--ink);
+  margin-top: 8px;
+  line-height: 1.5;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.review-panel-item-menu a {
+  color: var(--teal);
+  font-weight: 600;
+}
+
+.review-panel-item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .review-panel-item-actions button {
   height: 32px;
   padding: 0 14px;
@@ -820,6 +870,7 @@ html, body {
   font-weight: 600;
   cursor: pointer;
   border: none;
+  white-space: nowrap;
 }
 
 .review-btn-approve {
@@ -838,6 +889,16 @@ html, body {
 
 .review-btn-reject:hover {
   background: #fecaca;
+}
+
+.review-btn-view {
+  background: var(--base);
+  color: var(--ink);
+  border: 1px solid var(--line) !important;
+}
+
+.review-btn-view:hover {
+  background: var(--line);
 }
 
 @media (max-width: 640px) {

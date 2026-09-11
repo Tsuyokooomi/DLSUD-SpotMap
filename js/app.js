@@ -513,6 +513,7 @@ function updateAuthUI() {
   const logoutBtn = document.getElementById("logoutBtn");
   const addSpotBtn = document.getElementById("addSpotBtn");
   const reviewBtn = document.getElementById("reviewBtn");
+  const mySuggestBtn = document.getElementById("mySuggestBtn");
   const userProfile = document.getElementById("userProfile");
   const userEmailBadge = document.getElementById("userEmailBadge");
 
@@ -527,6 +528,9 @@ function updateAuthUI() {
       addSpotBtn.style.display = "block";
       addSpotBtn.textContent = user.role === "admin" ? "+ Add Spot" : "+ Suggest Spot";
     }
+    if (mySuggestBtn) {
+      mySuggestBtn.style.display = user.role === "admin" ? "none" : "inline-block";
+    }
     if (reviewBtn) {
       reviewBtn.style.display = user.role === "admin" ? "inline-block" : "none";
     }
@@ -535,6 +539,7 @@ function updateAuthUI() {
     if (logoutBtn) logoutBtn.style.display = "none";
     if (userProfile) userProfile.style.display = "none";
     if (addSpotBtn) addSpotBtn.style.display = "none";
+    if (mySuggestBtn) mySuggestBtn.style.display = "none";
     if (reviewBtn) reviewBtn.style.display = "none";
   }
 }
@@ -1168,14 +1173,30 @@ document.getElementById("addSpotBtn").addEventListener("click", () => {
   openPlaceModal();
 });
 
-// ---------- Review Panel (admin) ----------
+// ---------- Review Panel (admin) & My Suggestions (user) ----------
 
 const reviewPanel = document.getElementById("reviewPanel");
 const reviewPanelList = document.getElementById("reviewPanelList");
 const reviewPanelClose = document.getElementById("reviewPanelClose");
 const reviewBtn = document.getElementById("reviewBtn");
+const mySuggestPanel = document.getElementById("mySuggestPanel");
+const mySuggestList = document.getElementById("mySuggestList");
+const mySuggestPanelClose = document.getElementById("mySuggestPanelClose");
+const mySuggestBtn = document.getElementById("mySuggestBtn");
+
+function statusBadge(status) {
+  const label = status || "approved";
+  const cls = ["pending", "approved", "rejected"].includes(label) ? label : "approved";
+  return `<span class="place-status-badge ${cls}">${cls}</span>`;
+}
+
+function closeAllPanels() {
+  if (reviewPanel) reviewPanel.style.display = "none";
+  if (mySuggestPanel) mySuggestPanel.style.display = "none";
+}
 
 async function openReviewPanel() {
+  closeAllPanels();
   reviewPanel.style.display = "flex";
   reviewPanelList.innerHTML = `<div style="padding:20px;text-align:center;color:var(--ink-soft);font-size:13px;">Loading pending spots...</div>`;
 
@@ -1192,16 +1213,29 @@ async function openReviewPanel() {
     pending.forEach(place => {
       const item = document.createElement("div");
       item.className = "review-panel-item";
+      const coordText = `📍 ${parseFloat(place.lat).toFixed(5)}, ${parseFloat(place.lng).toFixed(5)}`;
       item.innerHTML = `
         <div class="review-panel-item-info">
-          <div class="review-panel-item-name">${escapeHtml(place.name)}</div>
-          <div class="review-panel-item-meta">${place.category} · ${place.address}</div>
+          <div class="review-panel-item-name">${escapeHtml(place.name)} ${statusBadge(place.status)}</div>
+          <div class="review-panel-item-meta">${place.category} · ${escapeHtml(place.address || "No address")}</div>
+          <div class="review-panel-item-desc">${escapeHtml(place.description || "No description")}</div>
+          <div class="review-panel-item-coords">${coordText}</div>
+          ${place.imageUrl ? `<img class="review-panel-item-img" src="${place.imageUrl}" alt="Suggestion photo">` : ""}
+          ${place.menuImageUrl ? `<div class="review-panel-item-menu"><strong>Menu:</strong> <a href="${place.menuImageUrl}" target="_blank" rel="noopener">View menu image</a></div>` : ""}
+          ${place.menuItems && place.menuItems.length > 0 ? `<div class="review-panel-item-menu">${place.menuItems.map(m => `• ${escapeHtml(m.name || "Item")}${m.price ? " — ₱" + escapeHtml(m.price) : ""}`).join("<br>")}</div>` : ""}
         </div>
         <div class="review-panel-item-actions">
+          <button class="review-btn-view" data-view="true">View</button>
           <button class="review-btn-approve">Approve</button>
           <button class="review-btn-reject">Reject</button>
         </div>
       `;
+
+      item.querySelector(".review-btn-view").addEventListener("click", () => {
+        closeAllPanels();
+        map.panTo([place.lat, place.lng]);
+        openCard(place);
+      });
 
       item.querySelector(".review-btn-approve").addEventListener("click", async () => {
         try {
@@ -1235,6 +1269,48 @@ async function openReviewPanel() {
   }
 }
 
+async function openMySuggestPanel() {
+  closeAllPanels();
+  mySuggestPanel.style.display = "flex";
+  mySuggestList.innerHTML = `<div style="padding:20px;text-align:center;color:var(--ink-soft);font-size:13px;">Loading your suggestions...</div>`;
+
+  try {
+    const mine = await API.places.getMine();
+
+    if (!mine || mine.length === 0) {
+      mySuggestList.innerHTML = `<div style="padding:20px;text-align:center;color:var(--ink-soft);font-size:13px;">You haven't submitted any suggestions yet.</div>`;
+      return;
+    }
+
+    mySuggestList.innerHTML = "";
+    mine.slice().reverse().forEach(place => {
+      const item = document.createElement("div");
+      item.className = "review-panel-item";
+      item.innerHTML = `
+        <div class="review-panel-item-info">
+          <div class="review-panel-item-name">${escapeHtml(place.name)} ${statusBadge(place.status)}</div>
+          <div class="review-panel-item-meta">${place.category} · ${escapeHtml(place.address || "No address")}</div>
+          <div class="review-panel-item-desc">${escapeHtml(place.description || "No description")}</div>
+          <div class="review-panel-item-coords">📍 ${parseFloat(place.lat).toFixed(5)}, ${parseFloat(place.lng).toFixed(5)}</div>
+        </div>
+        <div class="review-panel-item-actions">
+          <button class="review-btn-view" data-view="true">View</button>
+        </div>
+      `;
+
+      item.querySelector(".review-btn-view").addEventListener("click", () => {
+        closeAllPanels();
+        map.panTo([place.lat, place.lng]);
+        openCard(place);
+      });
+
+      mySuggestList.appendChild(item);
+    });
+  } catch (err) {
+    mySuggestList.innerHTML = `<div style="padding:20px;text-align:center;color:#dc2626;font-size:13px;">Failed to load your suggestions.</div>`;
+  }
+}
+
 if (reviewBtn) {
   reviewBtn.addEventListener("click", () => {
     if (reviewPanel.style.display === "none" || !reviewPanel.style.display) {
@@ -1248,6 +1324,22 @@ if (reviewBtn) {
 if (reviewPanelClose) {
   reviewPanelClose.addEventListener("click", () => {
     reviewPanel.style.display = "none";
+  });
+}
+
+if (mySuggestBtn) {
+  mySuggestBtn.addEventListener("click", () => {
+    if (mySuggestPanel.style.display === "none" || !mySuggestPanel.style.display) {
+      openMySuggestPanel();
+    } else {
+      mySuggestPanel.style.display = "none";
+    }
+  });
+}
+
+if (mySuggestPanelClose) {
+  mySuggestPanelClose.addEventListener("click", () => {
+    mySuggestPanel.style.display = "none";
   });
 }
 if (placeModalCloseBtn) {

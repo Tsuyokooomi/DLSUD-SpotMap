@@ -26,8 +26,19 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET /api/places/mine - logged-in user's own suggestions (pending, approved, rejected)
+router.get("/mine", requireAuth, async (req, res) => {
+  try {
+    const places = await Place.find({ createdBy: req.user.id });
+    res.json(places);
+  } catch (err) {
+    res.status(500).json({ error: "Could not load your suggestions", details: err.message });
+  }
+});
+
 // GET /api/places/:id - anyone can view one pin
 router.get("/:id", async (req, res) => {
+
   try {
     const place = await Place.findById(req.params.id);
     if (!place) return res.status(404).json({ error: "Place not found" });
