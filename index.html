@@ -37,7 +37,32 @@
       <button class="btn btn-secondary" id="reviewBtn" style="display: none;">Review Pending</button>
       <button class="btn btn-ghost" id="logoutBtn" style="display: none;">Log out</button>
     </div>
+
+    <!-- Hamburger (mobile only) -->
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Menu">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
   </header>
+
+  <!-- Mobile Navigation Drawer -->
+  <div class="mobile-nav" id="mobileNav" style="display: none;">
+    <div class="mobile-nav-header">
+      <div id="mobileUserProfile" class="mobile-nav-user" style="display: none;">
+        <span class="mobile-nav-avatar">👤</span>
+        <span class="mobile-nav-email" id="mobileUserEmail"></span>
+      </div>
+    </div>
+    <div class="mobile-nav-links">
+      <button class="mobile-nav-item" id="mobileLoginBtn">Log in</button>
+      <button class="mobile-nav-item mobile-nav-primary" id="mobileAddSpotBtn" style="display: none;">+ Add Spot</button>
+      <button class="mobile-nav-item" id="mobileMySuggestBtn" style="display: none;">My Suggestions</button>
+      <button class="mobile-nav-item" id="mobileReviewBtn" style="display: none;">Review Pending</button>
+      <div class="mobile-nav-divider"></div>
+      <button class="mobile-nav-item mobile-nav-danger" id="mobileLogoutBtn" style="display: none;">Log out</button>
+    </div>
+  </div>
 
   <!-- Category filter row -->
   <nav class="filters" id="filters">

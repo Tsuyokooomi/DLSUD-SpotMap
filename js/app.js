@@ -522,6 +522,15 @@ function updateAuthUI() {
   const userProfile = document.getElementById("userProfile");
   const userEmailBadge = document.getElementById("userEmailBadge");
 
+  // Mobile drawer elements
+  const mobileLoginBtn = document.getElementById("mobileLoginBtn");
+  const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
+  const mobileAddSpotBtn = document.getElementById("mobileAddSpotBtn");
+  const mobileReviewBtn = document.getElementById("mobileReviewBtn");
+  const mobileMySuggestBtn = document.getElementById("mobileMySuggestBtn");
+  const mobileUserProfile = document.getElementById("mobileUserProfile");
+  const mobileUserEmail = document.getElementById("mobileUserEmail");
+
   if (loggedIn && user) {
     if (loginBtn) loginBtn.style.display = "none";
     if (logoutBtn) logoutBtn.style.display = "block";
@@ -539,6 +548,23 @@ function updateAuthUI() {
     if (reviewBtn) {
       reviewBtn.style.display = user.role === "admin" ? "inline-block" : "none";
     }
+    // Mobile drawer
+    if (mobileLoginBtn) mobileLoginBtn.style.display = "none";
+    if (mobileLogoutBtn) mobileLogoutBtn.style.display = "block";
+    if (mobileUserProfile) {
+      mobileUserProfile.style.display = "flex";
+      mobileUserEmail.textContent = user.email;
+    }
+    if (mobileAddSpotBtn) {
+      mobileAddSpotBtn.style.display = "block";
+      mobileAddSpotBtn.textContent = user.role === "admin" ? "+ Add Spot" : "+ Suggest Spot";
+    }
+    if (mobileMySuggestBtn) {
+      mobileMySuggestBtn.style.display = user.role === "admin" ? "none" : "block";
+    }
+    if (mobileReviewBtn) {
+      mobileReviewBtn.style.display = user.role === "admin" ? "block" : "none";
+    }
   } else {
     if (loginBtn) loginBtn.style.display = "block";
     if (logoutBtn) logoutBtn.style.display = "none";
@@ -546,8 +572,94 @@ function updateAuthUI() {
     if (addSpotBtn) addSpotBtn.style.display = "none";
     if (mySuggestBtn) mySuggestBtn.style.display = "none";
     if (reviewBtn) reviewBtn.style.display = "none";
+    // Mobile drawer
+    if (mobileLoginBtn) mobileLoginBtn.style.display = "block";
+    if (mobileLogoutBtn) mobileLogoutBtn.style.display = "none";
+    if (mobileUserProfile) mobileUserProfile.style.display = "none";
+    if (mobileAddSpotBtn) mobileAddSpotBtn.style.display = "none";
+    if (mobileMySuggestBtn) mobileMySuggestBtn.style.display = "none";
+    if (mobileReviewBtn) mobileReviewBtn.style.display = "none";
   }
 }
+
+// ---------- Mobile Hamburger Menu ----------
+
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const mobileNav = document.getElementById("mobileNav");
+
+function closeMobileNav() {
+  if (mobileNav) mobileNav.style.display = "none";
+  if (hamburgerBtn) hamburgerBtn.classList.remove("hamburger-open");
+}
+
+if (hamburgerBtn) {
+  hamburgerBtn.addEventListener("click", () => {
+    const isOpen = mobileNav.style.display === "flex";
+    if (isOpen) {
+      closeMobileNav();
+    } else {
+      mobileNav.style.display = "flex";
+      hamburgerBtn.classList.add("hamburger-open");
+    }
+  });
+}
+
+// Mobile drawer buttons mirror the desktop buttons
+const mobileLoginBtnEl = document.getElementById("mobileLoginBtn");
+const mobileLogoutBtnEl = document.getElementById("mobileLogoutBtn");
+const mobileAddSpotBtnEl = document.getElementById("mobileAddSpotBtn");
+const mobileMySuggestBtnEl = document.getElementById("mobileMySuggestBtn");
+const mobileReviewBtnEl = document.getElementById("mobileReviewBtn");
+
+if (mobileLoginBtnEl) {
+  mobileLoginBtnEl.addEventListener("click", () => {
+    closeMobileNav();
+    openAuthModal("login");
+  });
+}
+
+if (mobileLogoutBtnEl) {
+  mobileLogoutBtnEl.addEventListener("click", () => {
+    closeMobileNav();
+    State.clearSession();
+    updateAuthUI();
+    if (currentCard && currentPlace) openCard(currentPlace);
+  });
+}
+
+if (mobileAddSpotBtnEl) {
+  mobileAddSpotBtnEl.addEventListener("click", () => {
+    closeMobileNav();
+    if (!State.isLoggedIn()) {
+      openAuthModal("login", "Please log in to suggest a spot.");
+      return;
+    }
+    openPlaceModal();
+  });
+}
+
+if (mobileMySuggestBtnEl) {
+  mobileMySuggestBtnEl.addEventListener("click", () => {
+    closeMobileNav();
+    openMySuggestPanel();
+  });
+}
+
+if (mobileReviewBtnEl) {
+  mobileReviewBtnEl.addEventListener("click", () => {
+    closeMobileNav();
+    openReviewPanel();
+  });
+}
+
+// Close mobile nav when clicking outside
+document.addEventListener("click", e => {
+  if (mobileNav && mobileNav.style.display === "flex") {
+    if (!e.target.closest(".mobile-nav") && !e.target.closest(".hamburger-btn")) {
+      closeMobileNav();
+    }
+  }
+});
 
 function openAuthModal(mode = "login", errorMsg = "") {
   authMode = mode;
