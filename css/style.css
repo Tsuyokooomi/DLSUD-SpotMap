@@ -1718,22 +1718,365 @@ html, body {
   background: rgba(47, 111, 94, 0.08);
 }
 
-/* ---------- Mobile ---------- */
+/* ---------- Responsive / Mobile ---------- */
 
-@media (max-width: 640px) {
-  .search-wrap { display: none; }
-  .form-row { grid-template-columns: 1fr; }
-  .location-picker-actions { grid-template-columns: 1fr; }
-  .map-picker-banner { top: 68px; padding: 10px 14px; }
-  .map-picker-banner-content { flex-direction: column; align-items: stretch; gap: 10px; }
-  .map-picker-actions { justify-content: flex-end; }
+/* Tablet (768px and below) */
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0 12px;
+    gap: 10px;
+  }
+
+  .brand-name {
+    font-size: 16px;
+  }
+
+  .search-wrap {
+    max-width: 280px;
+  }
+
+  .topbar-actions {
+    gap: 6px;
+  }
+
+  .topbar-actions .btn {
+    height: 34px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
+  .user-profile {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  .user-role-badge {
+    font-size: 8px;
+    padding: 1px 5px;
+  }
+
+  .filters {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .chip {
+    height: 30px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+
+  .review-panel {
+    width: 360px;
+  }
+
+  .review-panel-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .review-panel-item-actions {
+    justify-content: flex-end;
+  }
+
+  .menu-item-main {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-item-photo-box {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .menu-item-photo-trigger {
+    width: 60px;
+    min-height: 60px;
+  }
+
+  .menu-item-field-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-item-price {
+    text-align: left;
+  }
+
+  .place-card-menu-item {
+    grid-template-columns: 56px 1fr;
+  }
+
+  .place-card-menu-thumb {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+/* Phone (480px and below) */
+@media (max-width: 480px) {
+  .topbar {
+    height: 56px;
+    gap: 8px;
+    padding: 0 10px;
+  }
+
+  .brand {
+    gap: 4px;
+    font-size: 15px;
+  }
+
+  .brand-mark {
+    font-size: 12px;
+  }
+
+  .search-wrap {
+    display: none;
+  }
+
+  .topbar-actions {
+    gap: 4px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .topbar-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .topbar-actions .btn {
+    height: 32px;
+    padding: 0 8px;
+    font-size: 11px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .filters {
+    top: 56px;
+    height: 46px;
+    padding: 0 10px;
+    gap: 6px;
+  }
+
+  .chip {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 11px;
+    gap: 5px;
+  }
+
+  .chip-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  /* Place card — full-width bottom sheet */
   .place-card {
-    left: 12px;
-    right: 12px;
+    left: 0;
+    right: 0;
     width: auto;
     top: auto;
     bottom: 0;
-    max-height: 70vh;
+    max-height: 75vh;
     border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .place-card-body {
+    padding: 20px 16px;
+  }
+
+  .place-card-title {
+    font-size: 20px;
+    padding-right: 28px;
+  }
+
+  .place-card-image-wrap {
+    height: 140px;
+  }
+
+  .place-card-actions {
+    gap: 8px;
+  }
+
+  .action-btn {
+    height: 38px;
+    font-size: 12px;
+  }
+
+  .comment-add {
+    flex-direction: column;
+  }
+
+  .comment-input {
+    height: 38px;
+  }
+
+  .comment-submit {
+    height: 38px;
+    width: 100%;
+  }
+
+  /* Review & My Suggestions panels — full-width bottom sheet */
+  .review-panel {
+    left: 0;
+    right: 0;
+    width: auto;
+    top: auto;
+    bottom: 0;
+    max-height: 80vh;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .review-panel-header {
+    padding: 14px 16px;
+  }
+
+  .review-panel-title {
+    font-size: 14px;
+  }
+
+  .review-panel-item {
+    padding: 10px 12px;
+  }
+
+  .review-panel-item-name {
+    font-size: 13px;
+  }
+
+  /* Modal — full-width on phone */
+  .modal-backdrop {
+    padding: 0;
+  }
+
+  .modal-card {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    margin: 0;
+    overflow-y: auto;
+  }
+
+  .modal-card-wide {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .modal-title {
+    font-size: 18px;
+  }
+
+  /* Location picker */
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .location-picker-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .location-action-btn {
+    font-size: 11px;
+    height: 36px;
+  }
+
+  /* Map picker banner */
+  .map-picker-banner {
+    top: 56px;
+    padding: 10px 12px;
+  }
+
+  .map-picker-banner-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .map-picker-actions {
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .map-picker-actions .btn {
+    height: 34px;
+    font-size: 12px;
+  }
+
+  /* Minimized dock */
+  .minimized-dock-pill {
+    bottom: 16px;
+    right: 12px;
+    padding: 6px 12px;
+  }
+
+  .minimized-dock-text {
+    font-size: 11px;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Status & Refresh buttons */
+  .status-pill {
+    bottom: 12px;
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+
+  .refresh-locations-btn {
+    bottom: 42px;
+    font-size: 10px;
+    padding: 4px 10px;
+  }
+
+  /* Image upload area */
+  .image-dropzone {
+    padding: 14px 10px;
+  }
+
+  .image-dropzone-icon {
+    font-size: 20px;
+  }
+
+  .image-dropzone-text {
+    font-size: 12px;
+  }
+
+  .image-preview-thumb {
+    width: 48px;
+    height: 48px;
+  }
+
+  /* Menu upload */
+  .menu-upload-dropzone {
+    padding: 14px 10px;
+  }
+
+  .menu-upload-preview-thumb {
+    width: 48px;
+    height: 48px;
+  }
+
+  /* Form groups */
+  .form-group label {
+    font-size: 12px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 13px;
+    height: 38px;
+  }
+
+  .form-group textarea {
+    height: auto;
+  }
+
+  .form-submit-btn {
+    height: 40px;
   }
 }

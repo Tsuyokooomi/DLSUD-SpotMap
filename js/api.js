@@ -2,7 +2,13 @@
 
 const API = {
   async request(endpoint, options = {}) {
-    const url = `${API_BASE}${endpoint}`;
+    // Add cache-busting for GET requests to avoid stale data
+    let url = `${API_BASE}${endpoint}`;
+    const method = (options.method || "GET").toUpperCase();
+    if (method === "GET") {
+      const separator = url.includes("?") ? "&" : "?";
+      url += `${separator}_t=${Date.now()}`;
+    }
     const headers = {
       ...State.authHeaders(),
       ...(options.headers || {})
@@ -10,6 +16,7 @@ const API = {
 
     const config = {
       ...options,
+      cache: "no-store",
       headers
     };
 
