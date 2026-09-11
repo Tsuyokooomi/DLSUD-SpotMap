@@ -38,6 +38,9 @@ function renderPins() {
   markers = {};
 
   const visible = places.filter(p => {
+    const lat = parseFloat(p.lat);
+    const lng = parseFloat(p.lng);
+    if (isNaN(lat) || isNaN(lng)) return false;
     const matchesCategory = activeCategory === "all" || p.category === activeCategory;
     const placeTags = p.tags || [];
     const matchesTags = activeTags.size === 0 || [...activeTags].every(t => placeTags.includes(t));
@@ -46,7 +49,9 @@ function renderPins() {
 
   visible.forEach(place => {
     const placeId = place._id || place.id;
-    const marker = L.marker([place.lat, place.lng], { icon: makeIcon(place.category) }).addTo(map);
+    const lat = parseFloat(place.lat);
+    const lng = parseFloat(place.lng);
+    const marker = L.marker([lat, lng], { icon: makeIcon(place.category) }).addTo(map);
     marker.on("click", () => openCard(place));
     markers[placeId] = marker;
   });
@@ -1190,10 +1195,6 @@ function statusBadge(status) {
   return `<span class="place-status-badge ${cls}">${cls}</span>`;
 }
 
-function staticMapUrl(lat, lng, zoom = 16) {
-  return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=${zoom}&size=380x160&maptype=mapnik&markers=${lat},${lng},red-pushpin`;
-}
-
 function closeAllPanels() {
   if (reviewPanel) reviewPanel.style.display = "none";
   if (mySuggestPanel) mySuggestPanel.style.display = "none";
@@ -1223,7 +1224,6 @@ async function openReviewPanel() {
           <div class="review-panel-item-name">${escapeHtml(place.name)} ${statusBadge(place.status)}</div>
           <div class="review-panel-item-meta">${place.category} · ${escapeHtml(place.address || "No address")}</div>
           <div class="review-panel-item-coords">${coordText}</div>
-          <img class="review-panel-item-map" src="${staticMapUrl(place.lat, place.lng)}" alt="Map preview" loading="lazy">
           <div class="review-panel-item-desc">${escapeHtml(place.description || "No description")}</div>
           ${place.imageUrl ? `<img class="review-panel-item-img" src="${place.imageUrl}" alt="Suggestion photo">` : ""}
           ${place.menuImageUrl ? `<div class="review-panel-item-menu"><strong>Menu:</strong> <a href="${place.menuImageUrl}" target="_blank" rel="noopener">View menu image</a></div>` : ""}
@@ -1296,7 +1296,6 @@ async function openMySuggestPanel() {
           <div class="review-panel-item-name">${escapeHtml(place.name)} ${statusBadge(place.status)}</div>
           <div class="review-panel-item-meta">${place.category} · ${escapeHtml(place.address || "No address")}</div>
           <div class="review-panel-item-coords">📍 ${parseFloat(place.lat).toFixed(5)}, ${parseFloat(place.lng).toFixed(5)}</div>
-          <img class="review-panel-item-map" src="${staticMapUrl(place.lat, place.lng)}" alt="Map preview" loading="lazy">
           <div class="review-panel-item-desc">${escapeHtml(place.description || "No description")}</div>
         </div>
         <div class="review-panel-item-actions">
@@ -1452,6 +1451,9 @@ window.addEventListener("click", e => {
 
 // ---------- Data Initialization ----------
 
+let loadPlacesRetries = 0;
+const MAX_LOAD_RETRIES = 3;
+
 async function loadPlaces() {
   const statusEl = document.getElementById("statusPill");
   if (statusEl) statusEl.textContent = "Loading places…";
@@ -1460,21 +1462,40 @@ async function loadPlaces() {
     const data = await API.places.getAll();
     if (Array.isArray(data) && data.length > 0) {
       places = data;
+      loadPlacesRetries = 0;
     } else if (Array.isArray(data) && data.length === 0 && typeof PLACES !== "undefined") {
-      // Database has no records yet — fallback to mock places so the map is never empty
       places = PLACES;
+      loadPlacesRetries = 0;
     } else if (typeof PLACES !== "undefined") {
       places = PLACES;
+      loadPlacesRetries = 0;
     }
   } catch (err) {
     console.warn("Backend unavailable, loading local fallback data:", err.message);
     if (typeof PLACES !== "undefined") {
       places = PLACES;
     }
+    // Auto-retry on failure up to 3 times
+    if (loadPlacesRetries < MAX_LOAD_RETRIES) {
+      loadPlacesRetries++;
+      console.log(`Retrying loadPlaces (attempt ${loadPlacesRetries})...`);
+      await new Promise(r => setTimeout(r, 2000 * loadPlacesRetries));
+      return loadPlaces();
+    }
   }
 
   refreshAllTags();
   renderPins();
+}
+
+async function refreshLocations() {
+  loadPlacesRetries = 0;
+  await loadPlaces();
+}
+
+const refreshLocationsBtn = document.getElementById("refreshLocationsBtn");
+if (refreshLocationsBtn) {
+  refreshLocationsBtn.addEventListener("click", refreshLocations);
 }
 
 async function init() {
