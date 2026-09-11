@@ -7,7 +7,7 @@ const PLACES = [
     id: "p1",
     name: "Grumpy Joe Coffee",
     category: "cafe",
-    tags: ["Milktea", "Coffee", "Study spot"],
+    tags: ["Milktea", "Coffee", "Study spot"],  
     lat: 14.3294,
     lng: 120.9367,
     address: "Aguinaldo Hwy, Dasmariñas, Cavite",
