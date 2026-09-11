@@ -237,7 +237,29 @@
         </div>
 
         <div class="form-group">
-          <label>Menu Items (optional)</label>
+          <label>Menu (optional)</label>
+          <div class="menu-upload-box" id="menuUploadBox">
+            <input type="file" id="menuFileInput" accept="image/*" style="display: none;">
+            <input type="hidden" id="menuImageUrlInput" value="">
+
+            <div class="menu-upload-dropzone" id="menuUploadDropzone">
+              <span class="menu-upload-icon">📋</span>
+              <div class="menu-upload-text">Upload a full menu image</div>
+              <span class="menu-upload-sub">PNG, JPG, WEBP — optional</span>
+            </div>
+
+            <div class="menu-upload-preview" id="menuUploadPreview" style="display: none;">
+              <img id="menuUploadPreviewImg" src="" alt="Menu preview" class="menu-upload-preview-thumb">
+              <div class="menu-upload-preview-details">
+                <div class="menu-upload-preview-name" id="menuUploadPreviewName">menu.jpg</div>
+                <button type="button" class="btn-remove-menu-image" id="removeMenuImageBtn">✕ Remove menu</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Menu Items (optional, if you want a text list)</label>
           <div class="menu-builder" id="menuBuilder">
             <div class="menu-builder-list" id="menuBuilderList"></div>
             <button type="button" class="btn-add-menu-item" id="addMenuItemBtn">
