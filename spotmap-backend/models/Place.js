@@ -19,6 +19,7 @@ const placeSchema = new mongoose.Schema({
     price: { type: String, default: "" },
     imageUrl: { type: String, default: "" }
   }],
+  status: { type: String, enum: ["pending", "approved", "rejected"], default: "approved" },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
 }, { timestamps: true });
 

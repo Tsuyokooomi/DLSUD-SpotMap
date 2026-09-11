@@ -82,6 +82,18 @@ const API = {
       return API.request(`/places/${id}`, {
         method: "DELETE"
       });
+    },
+
+    approve(id) {
+      return API.request(`/places/${id}/approve`, {
+        method: "PATCH"
+      });
+    },
+
+    reject(id) {
+      return API.request(`/places/${id}/reject`, {
+        method: "PATCH"
+      });
     }
   },
 

@@ -32,7 +32,8 @@
         <span class="user-email" id="userEmailBadge"></span>
       </div>
       <button class="btn btn-ghost" id="loginBtn">Log in</button>
-      <button class="btn btn-primary" id="adminBtn" style="display: none;">+ Add Spot</button>
+      <button class="btn btn-primary" id="addSpotBtn" style="display: none;">+ Add Spot</button>
+      <button class="btn btn-secondary" id="reviewBtn" style="display: none;">Review Pending</button>
       <button class="btn btn-ghost" id="logoutBtn" style="display: none;">Log out</button>
     </div>
   </header>
@@ -85,6 +86,8 @@
           <div class="place-admin-controls" style="display: none;">
             <button class="btn-card-action place-edit-btn" title="Edit spot">Edit</button>
             <button class="btn-card-action place-delete-btn" title="Delete spot">Delete</button>
+            <button class="btn-card-action place-approve-btn" title="Approve spot" style="display:none;">Approve</button>
+            <button class="btn-card-action place-reject-btn" title="Reject spot" style="display:none;">Reject</button>
           </div>
         </div>
         <h2 class="place-card-title"></h2>
@@ -117,6 +120,15 @@
       </div>
     </div>
   </template>
+
+  <!-- Pending Spots Review Panel (admin only) -->
+  <div class="review-panel" id="reviewPanel" style="display: none;">
+    <div class="review-panel-header">
+      <span class="review-panel-title">Pending Spot Suggestions</span>
+      <button class="review-panel-close" id="reviewPanelClose">×</button>
+    </div>
+    <div class="review-panel-list" id="reviewPanelList"></div>
+  </div>
 
   <!-- Auth Modal (Log in / Sign up) -->
   <div class="modal-backdrop" id="authModal" style="display: none;">
