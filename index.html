@@ -76,6 +76,9 @@
     <div class="place-card">
       <div class="place-card-edge"></div>
       <button class="place-card-close" aria-label="Close">×</button>
+      <div class="place-card-image-wrap" style="display: none;">
+        <img class="place-card-image" src="" alt="Spot photo" loading="lazy">
+      </div>
       <div class="place-card-body">
         <div class="place-card-header">
           <span class="place-card-category"></span>
@@ -194,6 +197,33 @@
         <div class="form-group">
           <label for="placeAddressInput">Address / Landmark *</label>
           <input type="text" id="placeAddressInput" placeholder="e.g. Aguinaldo Hwy, Dasmariñas, Cavite" required>
+        </div>
+
+        <!-- Spot Photo Upload / Deselect Section -->
+        <div class="form-group">
+          <label>Spot Photo (optional)</label>
+          <div class="image-upload-box" id="imageUploadBox">
+            <input type="file" id="placeFileInput" accept="image/*" style="display: none;">
+            <input type="hidden" id="placeImageUrlInput" value="">
+            
+            <!-- Click/Drag Dropzone -->
+            <div class="image-dropzone" id="imageDropzone">
+              <span class="image-dropzone-icon">📸</span>
+              <div class="image-dropzone-text">Click to choose or drag a photo here</div>
+              <span class="image-dropzone-sub">PNG, JPG, WEBP from your device</span>
+            </div>
+
+            <!-- Image Preview Box with Remove / Deselect Button -->
+            <div class="image-preview-card" id="imagePreviewCard" style="display: none;">
+              <img id="imagePreviewImg" src="" alt="Selected photo preview" class="image-preview-thumb">
+              <div class="image-preview-details">
+                <div class="image-preview-name" id="imagePreviewName">photo.jpg</div>
+                <button type="button" class="btn-remove-image" id="removeImageBtn" title="Remove / Deselect photo">
+                  ✕ Remove photo
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="form-group">

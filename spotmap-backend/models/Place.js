@@ -12,6 +12,7 @@ const placeSchema = new mongoose.Schema({
   lng: { type: Number, required: true },
   address: { type: String, required: true },
   description: { type: String, default: "" },
+  imageUrl: { type: String, default: "" },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
 }, { timestamps: true });
 
