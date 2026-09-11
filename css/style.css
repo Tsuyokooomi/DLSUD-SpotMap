@@ -384,6 +384,18 @@ html, body {
 .tag-filter-clear { color: var(--ink-soft); }
 .tag-filter-apply { color: var(--teal); }
 
+@media (max-width: 480px) {
+  .tag-filter-panel {
+    position: fixed;
+    top: 120px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+}
+
 /* ---------- Map ---------- */
 
 #map {

@@ -533,8 +533,18 @@ tagFilterBtn.addEventListener("click", () => {
   renderTagFilterList();
 
   const rect = tagFilterBtn.getBoundingClientRect();
-  tagFilterPanel.style.top = `${rect.bottom + 8}px`;
-  tagFilterPanel.style.left = `${rect.left}px`;
+  const isMobile = window.innerWidth <= 480;
+  if (isMobile) {
+    // On mobile, keep the panel centered on screen instead of anchoring to the button
+    tagFilterPanel.style.top = "120px";
+    tagFilterPanel.style.left = "10px";
+    tagFilterPanel.style.right = "10px";
+    tagFilterPanel.style.width = "auto";
+  } else {
+    tagFilterPanel.style.top = `${rect.bottom + 8}px`;
+    tagFilterPanel.style.left = `${rect.left}px`;
+    tagFilterPanel.style.right = "auto";
+  }
 
   tagFilterPanel.classList.toggle("open");
 });
