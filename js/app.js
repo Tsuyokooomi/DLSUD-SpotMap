@@ -126,6 +126,14 @@ function openCard(place) {
 
     const editBtn = node.querySelector(".place-edit-btn");
     const deleteBtn = node.querySelector(".place-delete-btn");
+    const approveBtn = node.querySelector(".place-approve-btn");
+    const rejectBtn = node.querySelector(".place-reject-btn");
+
+    const isPending = place.status === "pending";
+    if (editBtn) editBtn.style.display = isPending ? "none" : "block";
+    if (deleteBtn) deleteBtn.style.display = isPending ? "none" : "block";
+    if (approveBtn) approveBtn.style.display = isPending ? "block" : "none";
+    if (rejectBtn) rejectBtn.style.display = isPending ? "block" : "none";
 
     if (editBtn) {
       editBtn.addEventListener("click", () => openPlaceModal(place));
@@ -140,6 +148,32 @@ function openCard(place) {
             await loadPlaces();
           } catch (err) {
             alert(err.message || "Failed to delete place");
+          }
+        }
+      });
+    }
+
+    if (approveBtn) {
+      approveBtn.addEventListener("click", async () => {
+        try {
+          await API.places.approve(placeId);
+          closeCard();
+          await loadPlaces();
+        } catch (err) {
+          alert(err.message || "Failed to approve spot");
+        }
+      });
+    }
+
+    if (rejectBtn) {
+      rejectBtn.addEventListener("click", async () => {
+        if (confirm(`Reject "${place.name}"? It will no longer appear on the map.`)) {
+          try {
+            await API.places.reject(placeId);
+            closeCard();
+            await loadPlaces();
+          } catch (err) {
+            alert(err.message || "Failed to reject spot");
           }
         }
       });
@@ -477,7 +511,8 @@ function updateAuthUI() {
   const user = State.getUser();
   const loginBtn = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
-  const adminBtn = document.getElementById("adminBtn");
+  const addSpotBtn = document.getElementById("addSpotBtn");
+  const reviewBtn = document.getElementById("reviewBtn");
   const userProfile = document.getElementById("userProfile");
   const userEmailBadge = document.getElementById("userEmailBadge");
 
@@ -488,14 +523,19 @@ function updateAuthUI() {
       userProfile.style.display = "flex";
       userEmailBadge.innerHTML = `${user.email} ${user.role === "admin" ? '<span class="user-role-badge">ADMIN</span>' : ""}`;
     }
-    if (adminBtn) {
-      adminBtn.style.display = user.role === "admin" ? "block" : "none";
+    if (addSpotBtn) {
+      addSpotBtn.style.display = "block";
+      addSpotBtn.textContent = user.role === "admin" ? "+ Add Spot" : "+ Suggest Spot";
+    }
+    if (reviewBtn) {
+      reviewBtn.style.display = user.role === "admin" ? "inline-block" : "none";
     }
   } else {
     if (loginBtn) loginBtn.style.display = "block";
     if (logoutBtn) logoutBtn.style.display = "none";
     if (userProfile) userProfile.style.display = "none";
-    if (adminBtn) adminBtn.style.display = "none";
+    if (addSpotBtn) addSpotBtn.style.display = "none";
+    if (reviewBtn) reviewBtn.style.display = "none";
   }
 }
 
@@ -1114,7 +1154,96 @@ function closePlaceModal() {
   removePickerMarker();
 }
 
-document.getElementById("adminBtn").addEventListener("click", () => openPlaceModal());
+document.getElementById("addSpotBtn").addEventListener("click", () => {
+  if (!State.isLoggedIn()) {
+    openAuthModal("login", "Please log in to suggest a spot.");
+    return;
+  }
+  openPlaceModal();
+});
+
+// ---------- Review Panel (admin) ----------
+
+const reviewPanel = document.getElementById("reviewPanel");
+const reviewPanelList = document.getElementById("reviewPanelList");
+const reviewPanelClose = document.getElementById("reviewPanelClose");
+const reviewBtn = document.getElementById("reviewBtn");
+
+async function openReviewPanel() {
+  reviewPanel.style.display = "flex";
+  reviewPanelList.innerHTML = `<div style="padding:20px;text-align:center;color:var(--ink-soft);font-size:13px;">Loading pending spots...</div>`;
+
+  try {
+    const all = await API.places.getAll();
+    const pending = all.filter(p => p.status === "pending");
+
+    if (pending.length === 0) {
+      reviewPanelList.innerHTML = `<div style="padding:20px;text-align:center;color:var(--ink-soft);font-size:13px;">No pending spots. All clear!</div>`;
+      return;
+    }
+
+    reviewPanelList.innerHTML = "";
+    pending.forEach(place => {
+      const item = document.createElement("div");
+      item.className = "review-panel-item";
+      item.innerHTML = `
+        <div class="review-panel-item-info">
+          <div class="review-panel-item-name">${escapeHtml(place.name)}</div>
+          <div class="review-panel-item-meta">${place.category} · ${place.address}</div>
+        </div>
+        <div class="review-panel-item-actions">
+          <button class="review-btn-approve">Approve</button>
+          <button class="review-btn-reject">Reject</button>
+        </div>
+      `;
+
+      item.querySelector(".review-btn-approve").addEventListener("click", async () => {
+        try {
+          await API.places.approve(place._id || place.id);
+          item.remove();
+          await loadPlaces();
+          if (reviewPanelList.children.length === 0) {
+            reviewPanelList.innerHTML = `<div style="padding:20px;text-align:center;color:var(--ink-soft);font-size:13px;">No pending spots. All clear!</div>`;
+          }
+        } catch (err) {
+          alert(err.message || "Failed to approve");
+        }
+      });
+
+      item.querySelector(".review-btn-reject").addEventListener("click", async () => {
+        try {
+          await API.places.reject(place._id || place.id);
+          item.remove();
+          if (reviewPanelList.children.length === 0) {
+            reviewPanelList.innerHTML = `<div style="padding:20px;text-align:center;color:var(--ink-soft);font-size:13px;">No pending spots. All clear!</div>`;
+          }
+        } catch (err) {
+          alert(err.message || "Failed to reject");
+        }
+      });
+
+      reviewPanelList.appendChild(item);
+    });
+  } catch (err) {
+    reviewPanelList.innerHTML = `<div style="padding:20px;text-align:center;color:#dc2626;font-size:13px;">Failed to load pending spots.</div>`;
+  }
+}
+
+if (reviewBtn) {
+  reviewBtn.addEventListener("click", () => {
+    if (reviewPanel.style.display === "none" || !reviewPanel.style.display) {
+      openReviewPanel();
+    } else {
+      reviewPanel.style.display = "none";
+    }
+  });
+}
+
+if (reviewPanelClose) {
+  reviewPanelClose.addEventListener("click", () => {
+    reviewPanel.style.display = "none";
+  });
+}
 if (placeModalCloseBtn) {
   placeModalCloseBtn.addEventListener("click", closePlaceModal);
 }
