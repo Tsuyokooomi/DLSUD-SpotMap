@@ -166,6 +166,14 @@ html, body {
 
 .btn-ghost:hover { background: var(--base); }
 
+.btn-secondary {
+  background: var(--base);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.btn-secondary:hover { background: var(--line); }
+
 .btn-primary {
   background: var(--teal);
   color: white;
