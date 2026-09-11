@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpotMap — Find places worth going to</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">●</span>
+      <span class="brand-name">SpotMap</span>
+    </div>
+
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="Search by name or tag, like 'Milktea'..." autocomplete="off">
+      <button class="btn btn-primary search-btn" id="searchBtn">Search</button>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" id="loginBtn">Log in</button>
+      <button class="btn btn-primary" id="adminBtn">Admin</button>
+    </div>
+  </header>
+
+  <!-- Category filter row -->
+  <nav class="filters" id="filters">
+    <button class="chip chip-active" data-category="all">All</button>
+    <button class="chip" data-category="food">
+      <span class="chip-dot dot-food"></span>Food
+    </button>
+    <button class="chip" data-category="cafe">
+      <span class="chip-dot dot-cafe"></span>Cafe
+    </button>
+    <button class="chip" data-category="mall">
+      <span class="chip-dot dot-mall"></span>Malls
+    </button>
+    <button class="chip" data-category="hangout">
+      <span class="chip-dot dot-hangout"></span>Hangouts
+    </button>
+
+    <div class="tag-filter-wrap">
+      <button class="chip" id="tagFilterBtn">Tags <span id="tagFilterCount"></span> ▾</button>
+      <div class="tag-filter-panel" id="tagFilterPanel">
+        <div class="tag-filter-list" id="tagFilterList"></div>
+        <div class="tag-filter-footer">
+          <button class="tag-filter-clear" id="tagFilterClear">Clear</button>
+          <button class="tag-filter-apply" id="tagFilterApply">Apply</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Map -->
+  <main id="map"></main>
+
+  <!-- Empty state / place count -->
+  <div class="status-pill" id="statusPill">Loading places…</div>
+
+  <!-- Place detail card (populated by JS, shown on pin click) -->
+  <template id="placeCardTemplate">
+    <div class="place-card">
+      <div class="place-card-edge"></div>
+      <button class="place-card-close" aria-label="Close">×</button>
+      <div class="place-card-body">
+        <span class="place-card-category"></span>
+        <h2 class="place-card-title"></h2>
+        <p class="place-card-address"></p>
+        <div class="place-card-tags"></div>
+        <p class="place-card-desc"></p>
+
+        <div class="place-card-actions">
+          <button class="action-btn" data-action="star">
+            <span class="action-icon">☆</span> Star
+          </button>
+          <button class="action-btn" data-action="togo">
+            <span class="action-icon">📍</span> To-go
+          </button>
+        </div>
+
+        <div class="place-card-comments">
+          <h3>Your notes</h3>
+          <div class="comment-list"></div>
+          <div class="comment-add">
+            <input type="text" class="comment-input" placeholder="Add a note about this place...">
+            <button class="comment-submit">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
