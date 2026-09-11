@@ -33,6 +33,7 @@
       </div>
       <button class="btn btn-ghost" id="loginBtn">Log in</button>
       <button class="btn btn-primary" id="addSpotBtn" style="display: none;">+ Add Spot</button>
+      <button class="btn btn-secondary" id="mySuggestBtn" style="display: none;">My Suggestions</button>
       <button class="btn btn-secondary" id="reviewBtn" style="display: none;">Review Pending</button>
       <button class="btn btn-ghost" id="logoutBtn" style="display: none;">Log out</button>
     </div>
@@ -128,6 +129,15 @@
       <button class="review-panel-close" id="reviewPanelClose">×</button>
     </div>
     <div class="review-panel-list" id="reviewPanelList"></div>
+  </div>
+
+  <!-- My Suggestions Panel (logged-in users see their own) -->
+  <div class="review-panel" id="mySuggestPanel" style="display: none;">
+    <div class="review-panel-header">
+      <span class="review-panel-title">My Suggestions</span>
+      <button class="review-panel-close" id="mySuggestPanelClose">×</button>
+    </div>
+    <div class="review-panel-list" id="mySuggestList"></div>
   </div>
 
   <!-- Auth Modal (Log in / Sign up) -->

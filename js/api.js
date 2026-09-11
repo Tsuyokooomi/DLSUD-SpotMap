@@ -84,6 +84,10 @@ const API = {
       });
     },
 
+    getMine() {
+      return API.request("/places/mine");
+    },
+
     approve(id) {
       return API.request(`/places/${id}/approve`, {
         method: "PATCH"
