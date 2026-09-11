@@ -143,6 +143,8 @@
 
       <form id="placeForm" class="modal-form">
         <input type="hidden" id="placeIdInput" value="">
+        <input type="hidden" id="placeLatInput" value="">
+        <input type="hidden" id="placeLngInput" value="">
         
         <div class="form-group">
           <label for="placeNameInput">Spot Name *</label>
@@ -165,17 +167,26 @@
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="placeLatInput">Latitude *</label>
-            <input type="number" step="any" id="placeLatInput" placeholder="14.3294" required>
-          </div>
-          <div class="form-group">
-            <label for="placeLngInput">Longitude *</label>
-            <input type="number" step="any" id="placeLngInput" placeholder="120.9367" required>
+        <!-- Visual Location Selector (No manual Lat/Lng typing required) -->
+        <div class="form-group">
+          <label>Pin Location *</label>
+          <div class="location-picker-card">
+            <div class="location-status-row">
+              <div class="location-status-badge" id="locationStatusBadge">
+                <span class="location-pin-dot"></span>
+                <span id="locationStatusText">No location selected</span>
+              </div>
+            </div>
+            <div class="location-picker-actions">
+              <button type="button" class="btn btn-ghost location-action-btn" id="useCurrentLocationBtn">
+                <span>📍</span> Use My Current Location
+              </button>
+              <button type="button" class="btn btn-ghost location-action-btn" id="pickOnMapBtn">
+                <span>📌</span> Drag Pin on Map
+              </button>
+            </div>
           </div>
         </div>
-        <div class="form-hint">Tip: You can also click anywhere on the map while this modal is open to fill coordinates.</div>
 
         <div class="form-group">
           <label for="placeAddressInput">Address / Landmark *</label>
@@ -190,6 +201,23 @@
         <div class="form-error" id="placeModalError" style="display: none;"></div>
         <button type="submit" class="btn btn-primary form-submit-btn" id="placeSubmitBtn">Save Spot</button>
       </form>
+    </div>
+  </div>
+
+  <!-- Floating Bar during Map Pin Dragging / Picking -->
+  <div class="map-picker-banner" id="mapPickerBanner" style="display: none;">
+    <div class="map-picker-banner-content">
+      <div class="map-picker-info">
+        <span class="map-picker-pulse"></span>
+        <div class="map-picker-text-wrap">
+          <div class="map-picker-title">Drag the pin or click on the map</div>
+          <div class="map-picker-coords" id="pickerCoordsDisplay">Coordinates: —</div>
+        </div>
+      </div>
+      <div class="map-picker-actions">
+        <button type="button" class="btn btn-ghost" id="cancelPickOnMapBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmLocationBtn">✓ Confirm Location</button>
+      </div>
     </div>
   </div>
 

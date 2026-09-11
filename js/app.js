@@ -531,7 +531,10 @@ authForm.addEventListener("submit", async e => {
   }
 });
 
-// ---------- Admin Modal (Add / Edit Spot) ----------
+// ---------- Admin Modal (Add / Edit Spot) & Location Picker ----------
+
+let adminPickerMarker = null;
+let isPickingOnMap = false;
 
 const placeModal = document.getElementById("placeModal");
 const placeForm = document.getElementById("placeForm");
@@ -547,6 +550,142 @@ const placeDescInput = document.getElementById("placeDescInput");
 const placeModalError = document.getElementById("placeModalError");
 const placeSubmitBtn = document.getElementById("placeSubmitBtn");
 
+const useCurrentLocationBtn = document.getElementById("useCurrentLocationBtn");
+const pickOnMapBtn = document.getElementById("pickOnMapBtn");
+const mapPickerBanner = document.getElementById("mapPickerBanner");
+const pickerCoordsDisplay = document.getElementById("pickerCoordsDisplay");
+const confirmLocationBtn = document.getElementById("confirmLocationBtn");
+const cancelPickOnMapBtn = document.getElementById("cancelPickOnMapBtn");
+const locationStatusBadge = document.getElementById("locationStatusBadge");
+const locationStatusText = document.getElementById("locationStatusText");
+
+function makeAdminPickerIcon() {
+  return L.divIcon({
+    className: "",
+    html: `<div class="admin-draggable-pin" title="Drag to adjust position"></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32]
+  });
+}
+
+function updateLocationUI(lat, lng, labelText) {
+  placeLatInput.value = parseFloat(lat).toFixed(6);
+  placeLngInput.value = parseFloat(lng).toFixed(6);
+  locationStatusBadge.classList.add("has-location");
+  locationStatusText.textContent = labelText || `Location set: ${parseFloat(lat).toFixed(4)}, ${parseFloat(lng).toFixed(4)}`;
+  pickerCoordsDisplay.textContent = `Coordinates: ${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}`;
+}
+
+function createOrUpdatePickerMarker(lat, lng) {
+  if (!adminPickerMarker) {
+    adminPickerMarker = L.marker([lat, lng], {
+      draggable: true,
+      icon: makeAdminPickerIcon(),
+      zIndexOffset: 1000
+    }).addTo(map);
+
+    adminPickerMarker.on("drag", () => {
+      const pos = adminPickerMarker.getLatLng();
+      pickerCoordsDisplay.textContent = `Coordinates: ${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}`;
+    });
+
+    adminPickerMarker.on("dragend", () => {
+      const pos = adminPickerMarker.getLatLng();
+      updateLocationUI(pos.lat, pos.lng, `Pinned at ${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`);
+    });
+  } else {
+    adminPickerMarker.setLatLng([lat, lng]);
+  }
+}
+
+function removePickerMarker() {
+  if (adminPickerMarker) {
+    map.removeLayer(adminPickerMarker);
+    adminPickerMarker = null;
+  }
+}
+
+// "Use My Current Location" via browser GPS
+useCurrentLocationBtn.addEventListener("click", () => {
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported by your browser.");
+    return;
+  }
+
+  useCurrentLocationBtn.disabled = true;
+  useCurrentLocationBtn.innerHTML = `<span>⏳</span> Locating…`;
+
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      useCurrentLocationBtn.disabled = false;
+      useCurrentLocationBtn.innerHTML = `<span>📍</span> Use My Current Location`;
+      const { latitude, longitude } = position.coords;
+
+      updateLocationUI(latitude, longitude, `GPS Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
+      createOrUpdatePickerMarker(latitude, longitude);
+      map.setView([latitude, longitude], 16);
+    },
+    err => {
+      useCurrentLocationBtn.disabled = false;
+      useCurrentLocationBtn.innerHTML = `<span>📍</span> Use My Current Location`;
+      alert("Could not get your location. Please choose 'Drag Pin on Map' instead.");
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+});
+
+// "Drag Pin on Map" mode
+pickOnMapBtn.addEventListener("click", () => {
+  isPickingOnMap = true;
+  placeModal.style.display = "none";
+  mapPickerBanner.style.display = "block";
+
+  // Use existing coords or center of the map
+  let lat = parseFloat(placeLatInput.value);
+  let lng = parseFloat(placeLngInput.value);
+
+  if (isNaN(lat) || isNaN(lng)) {
+    const center = map.getCenter();
+    lat = center.lat;
+    lng = center.lng;
+  }
+
+  updateLocationUI(lat, lng, `Pinned at ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+  createOrUpdatePickerMarker(lat, lng);
+  map.panTo([lat, lng]);
+});
+
+// Click on map while in picking mode moves the draggable pin
+map.on("click", e => {
+  if (isPickingOnMap) {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+    updateLocationUI(lat, lng, `Pinned at ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+    createOrUpdatePickerMarker(lat, lng);
+  }
+});
+
+// Confirm location from floating banner
+confirmLocationBtn.addEventListener("click", () => {
+  if (adminPickerMarker) {
+    const pos = adminPickerMarker.getLatLng();
+    updateLocationUI(pos.lat, pos.lng, `Pinned at ${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`);
+  }
+  isPickingOnMap = false;
+  mapPickerBanner.style.display = "none";
+  placeModal.style.display = "flex";
+});
+
+// Cancel picking on map
+cancelPickOnMapBtn.addEventListener("click", () => {
+  isPickingOnMap = false;
+  mapPickerBanner.style.display = "none";
+  placeModal.style.display = "flex";
+  if (!placeLatInput.value || !placeLngInput.value) {
+    removePickerMarker();
+  }
+});
+
 function openPlaceModal(editPlace = null) {
   if (!State.isAdmin()) {
     alert("Admin access required.");
@@ -561,11 +700,12 @@ function openPlaceModal(editPlace = null) {
     placeNameInput.value = editPlace.name;
     placeCategorySelect.value = editPlace.category;
     placeTagsInput.value = (editPlace.tags || []).join(", ");
-    placeLatInput.value = editPlace.lat;
-    placeLngInput.value = editPlace.lng;
     placeAddressInput.value = editPlace.address;
     placeDescInput.value = editPlace.description || "";
     placeSubmitBtn.textContent = "Update Spot";
+
+    updateLocationUI(editPlace.lat, editPlace.lng, `Spot Location (${parseFloat(editPlace.lat).toFixed(4)}, ${parseFloat(editPlace.lng).toFixed(4)})`);
+    createOrUpdatePickerMarker(editPlace.lat, editPlace.lng);
   } else {
     placeModalTitle.textContent = "Add New Spot";
     placeIdInput.value = "";
@@ -577,6 +717,10 @@ function openPlaceModal(editPlace = null) {
     placeAddressInput.value = "";
     placeDescInput.value = "";
     placeSubmitBtn.textContent = "Save Spot";
+
+    locationStatusBadge.classList.remove("has-location");
+    locationStatusText.textContent = "No location selected (use buttons below)";
+    removePickerMarker();
   }
 
   placeModal.style.display = "flex";
@@ -584,18 +728,13 @@ function openPlaceModal(editPlace = null) {
 
 function closePlaceModal() {
   placeModal.style.display = "none";
+  mapPickerBanner.style.display = "none";
+  isPickingOnMap = false;
+  removePickerMarker();
 }
 
 document.getElementById("adminBtn").addEventListener("click", () => openPlaceModal());
 document.getElementById("placeModalCloseBtn").addEventListener("click", closePlaceModal);
-
-// Clicking map when place modal is open sets coordinates
-map.on("click", e => {
-  if (placeModal.style.display === "flex") {
-    placeLatInput.value = e.latlng.lat.toFixed(6);
-    placeLngInput.value = e.latlng.lng.toFixed(6);
-  }
-});
 
 placeForm.addEventListener("submit", async e => {
   e.preventDefault();
@@ -612,6 +751,12 @@ placeForm.addEventListener("submit", async e => {
   const lng = parseFloat(placeLngInput.value);
   const address = placeAddressInput.value.trim();
   const description = placeDescInput.value.trim();
+
+  if (isNaN(lat) || isNaN(lng)) {
+    placeModalError.textContent = "Please set a location using 'Use My Current Location' or 'Drag Pin on Map'.";
+    placeModalError.style.display = "block";
+    return;
+  }
 
   const payload = { name, category, tags, lat, lng, address, description };
 
