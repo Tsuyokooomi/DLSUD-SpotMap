@@ -13,6 +13,11 @@ const placeSchema = new mongoose.Schema({
   address: { type: String, required: true },
   description: { type: String, default: "" },
   imageUrl: { type: String, default: "" },
+  menuItems: [{
+    name: { type: String, default: "" },
+    price: { type: String, default: "" },
+    imageUrl: { type: String, default: "" }
+  }],
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
 }, { timestamps: true });
 

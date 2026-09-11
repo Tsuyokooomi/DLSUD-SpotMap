@@ -101,6 +101,11 @@
           </button>
         </div>
 
+        <div class="place-card-menu" style="display: none;">
+          <h3>Menu</h3>
+          <div class="place-card-menu-list"></div>
+        </div>
+
         <div class="place-card-comments">
           <h3>Community Notes</h3>
           <div class="comment-list"></div>
@@ -229,6 +234,16 @@
         <div class="form-group">
           <label for="placeDescInput">Description</label>
           <textarea id="placeDescInput" rows="3" placeholder="Brief description of the place, highlights, vibes..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Menu Items (optional)</label>
+          <div class="menu-builder" id="menuBuilder">
+            <div class="menu-builder-list" id="menuBuilderList"></div>
+            <button type="button" class="btn-add-menu-item" id="addMenuItemBtn">
+              <span>+</span> Add Menu Item
+            </button>
+          </div>
         </div>
 
         <div class="form-error" id="placeModalError" style="display: none;"></div>

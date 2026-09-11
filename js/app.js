@@ -73,6 +73,33 @@ function openCard(place) {
   node.querySelector(".place-card-address").textContent = place.address;
   node.querySelector(".place-card-desc").textContent = place.description || "No description provided.";
 
+  const menuWrap = node.querySelector(".place-card-menu");
+  const menuList = node.querySelector(".place-card-menu-list");
+  const menuItems = Array.isArray(place.menuItems) ? place.menuItems : [];
+  if (menuItems.length > 0 && menuWrap && menuList) {
+    menuList.innerHTML = "";
+    menuWrap.style.display = "block";
+    menuItems.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "place-card-menu-item";
+      const safeName = (item && item.name) ? item.name : "Menu item";
+      const safePrice = (item && item.price) ? item.price : "";
+      const displayPrice = safePrice.startsWith("₱") ? safePrice : (safePrice ? `₱${safePrice}` : "Price available");
+      const hasImage = item && item.imageUrl;
+      card.innerHTML = `
+        ${hasImage ? `<img class="place-card-menu-thumb" src="${item.imageUrl}" alt="${escapeHtml(safeName)}" loading="lazy">` : '<div class="place-card-menu-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:11px;background:var(--card);">No pic</div>'}
+        <div class="place-card-menu-item-info">
+          <div class="place-card-menu-item-name">${escapeHtml(safeName)}</div>
+          <div class="place-card-menu-item-price">${displayPrice}</div>
+        </div>
+        <div style="font-size:12px;color:var(--ink-soft);"></div>
+      `;
+      menuList.appendChild(card);
+    });
+  } else if (menuWrap) {
+    menuWrap.style.display = "none";
+  }
+
   // Image handling in place card
   const imageWrap = node.querySelector(".place-card-image-wrap");
   const imageEl = node.querySelector(".place-card-image");
@@ -572,6 +599,10 @@ const imagePreviewName = document.getElementById("imagePreviewName");
 const removeImageBtn = document.getElementById("removeImageBtn");
 const placeModalError = document.getElementById("placeModalError");
 const placeSubmitBtn = document.getElementById("placeSubmitBtn");
+const menuBuilderList = document.getElementById("menuBuilderList");
+const addMenuItemBtn = document.getElementById("addMenuItemBtn");
+let menuItemIdCounter = 0;
+const menuItemFiles = new Map();
 
 const useCurrentLocationBtn = document.getElementById("useCurrentLocationBtn");
 const pickOnMapBtn = document.getElementById("pickOnMapBtn");
@@ -755,6 +786,100 @@ if (closeMinimizedPlaceBtn) {
   });
 }
 
+function resetMenuBuilder() {
+  if (!menuBuilderList) return;
+  menuBuilderList.innerHTML = "";
+  menuItemFiles.clear();
+}
+
+function buildMenuItemRow(item = {}) {
+  if (!menuBuilderList) return null;
+
+  const row = document.createElement("div");
+  row.className = "menu-item-row";
+  row.dataset.menuId = `menu-${menuItemIdCounter++}`;
+
+  const menuId = row.dataset.menuId;
+  const name = item.name || "";
+  const price = item.price || "";
+  const imageUrl = item.imageUrl || "";
+
+  row.innerHTML = `
+    <div class="menu-item-header">
+      <label>Menu item</label>
+      <button type="button" class="menu-item-remove-row">Remove</button>
+    </div>
+    <div class="menu-item-main">
+      <div class="menu-item-photo-box">
+        <input type="file" class="menu-item-file-input" accept="image/*" style="display: none;">
+        <button type="button" class="menu-item-photo-trigger">Add photo</button>
+        <div class="menu-item-preview-card" style="display: ${imageUrl ? "flex" : "none"};">
+          <img class="menu-item-preview-image" src="${imageUrl}" alt="Menu item preview">
+          <div class="menu-item-preview-name">${imageUrl ? "Saved image" : "Preview"}</div>
+        </div>
+      </div>
+      <div class="menu-item-field-wrap">
+        <input type="text" class="menu-item-name" value="${escapeHtml(name)}" placeholder="Dish / drink name">
+        <input type="text" class="menu-item-price" value="${escapeHtml(price)}" placeholder="₱0.00">
+      </div>
+    </div>
+  `;
+
+  const fileInput = row.querySelector(".menu-item-file-input");
+  const photoTrigger = row.querySelector(".menu-item-photo-trigger");
+  const previewCard = row.querySelector(".menu-item-preview-card");
+  const previewImage = row.querySelector(".menu-item-preview-image");
+  const previewName = row.querySelector(".menu-item-preview-name");
+
+  if (imageUrl) {
+    previewImage.onerror = () => {
+      previewCard.style.display = "none";
+      previewName.textContent = "Preview";
+    };
+    row.dataset.imageUrl = imageUrl;
+  }
+
+  photoTrigger.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+
+    menuItemFiles.set(menuId, file);
+    const reader = new FileReader();
+    reader.onload = () => {
+      previewImage.src = reader.result;
+      previewCard.style.display = "flex";
+      previewName.textContent = file.name;
+      row.dataset.imageUrl = "";
+    };
+    reader.readAsDataURL(file);
+  });
+
+  const removePreviewBtn = row.querySelector(".menu-item-preview-card");
+  removePreviewBtn.addEventListener("click", () => {
+    if (fileInput.files && fileInput.files.length) {
+      fileInput.value = "";
+      menuItemFiles.delete(menuId);
+    }
+    row.dataset.imageUrl = "";
+    previewCard.style.display = "none";
+    previewImage.src = "";
+    previewName.textContent = "Preview";
+  });
+
+  row.querySelector(".menu-item-remove-row").addEventListener("click", () => {
+    row.remove();
+    menuItemFiles.delete(menuId);
+  });
+
+  menuBuilderList.appendChild(row);
+  return row;
+}
+
+if (addMenuItemBtn) {
+  addMenuItemBtn.addEventListener("click", () => buildMenuItemRow());
+}
+
 function resetImagePicker() {
   if (placeImageUrlInput) placeImageUrlInput.value = "";
   if (placeFileInput) placeFileInput.value = "";
@@ -867,6 +992,14 @@ function openPlaceModal(editPlace = null) {
     } else {
       resetImagePicker();
     }
+
+    resetMenuBuilder();
+    const existingMenuItems = Array.isArray(editPlace.menuItems) ? editPlace.menuItems : [];
+    if (existingMenuItems.length === 0) {
+      buildMenuItemRow();
+    } else {
+      existingMenuItems.forEach(item => buildMenuItemRow(item));
+    }
   } else {
     placeModalTitle.textContent = "Add New Spot";
     placeIdInput.value = "";
@@ -883,6 +1016,8 @@ function openPlaceModal(editPlace = null) {
     locationStatusText.textContent = "No location selected (use buttons below)";
     removePickerMarker();
     resetImagePicker();
+    resetMenuBuilder();
+    buildMenuItemRow();
   }
 
   placeModal.style.display = "flex";
@@ -934,7 +1069,29 @@ placeForm.addEventListener("submit", async e => {
       imageUrl = await uploadToCloudinary(file);
     }
 
-    const payload = { name, category, tags, lat, lng, address, description, imageUrl };
+    const menuItems = [];
+    const rows = Array.from(menuBuilderList.querySelectorAll(".menu-item-row"));
+    for (const row of rows) {
+      const itemName = row.querySelector(".menu-item-name")?.value.trim() || "";
+      const priceValue = row.querySelector(".menu-item-price")?.value.trim() || "";
+      const menuImageUrl = row.dataset.imageUrl || "";
+      const menuFile = menuItemFiles.get(row.dataset.menuId);
+
+      let finalImageUrl = menuImageUrl;
+      if (menuFile) {
+        finalImageUrl = await uploadToCloudinary(menuFile);
+      }
+
+      if (itemName || priceValue || finalImageUrl) {
+        menuItems.push({
+          name: itemName,
+          price: priceValue,
+          imageUrl: finalImageUrl
+        });
+      }
+    }
+
+    const payload = { name, category, tags, lat, lng, address, description, imageUrl, menuItems };
 
     placeSubmitBtn.textContent = "Saving...";
 
