@@ -38,6 +38,9 @@ function renderPins() {
   markers = {};
 
   const visible = places.filter(p => {
+    const lat = parseFloat(p.lat);
+    const lng = parseFloat(p.lng);
+    if (isNaN(lat) || isNaN(lng)) return false;
     const matchesCategory = activeCategory === "all" || p.category === activeCategory;
     const placeTags = p.tags || [];
     const matchesTags = activeTags.size === 0 || [...activeTags].every(t => placeTags.includes(t));
@@ -46,7 +49,9 @@ function renderPins() {
 
   visible.forEach(place => {
     const placeId = place._id || place.id;
-    const marker = L.marker([place.lat, place.lng], { icon: makeIcon(place.category) }).addTo(map);
+    const lat = parseFloat(place.lat);
+    const lng = parseFloat(place.lng);
+    const marker = L.marker([lat, lng], { icon: makeIcon(place.category) }).addTo(map);
     marker.on("click", () => openCard(place));
     markers[placeId] = marker;
   });
@@ -1446,6 +1451,9 @@ window.addEventListener("click", e => {
 
 // ---------- Data Initialization ----------
 
+let loadPlacesRetries = 0;
+const MAX_LOAD_RETRIES = 3;
+
 async function loadPlaces() {
   const statusEl = document.getElementById("statusPill");
   if (statusEl) statusEl.textContent = "Loading places…";
@@ -1454,21 +1462,40 @@ async function loadPlaces() {
     const data = await API.places.getAll();
     if (Array.isArray(data) && data.length > 0) {
       places = data;
+      loadPlacesRetries = 0;
     } else if (Array.isArray(data) && data.length === 0 && typeof PLACES !== "undefined") {
-      // Database has no records yet — fallback to mock places so the map is never empty
       places = PLACES;
+      loadPlacesRetries = 0;
     } else if (typeof PLACES !== "undefined") {
       places = PLACES;
+      loadPlacesRetries = 0;
     }
   } catch (err) {
     console.warn("Backend unavailable, loading local fallback data:", err.message);
     if (typeof PLACES !== "undefined") {
       places = PLACES;
     }
+    // Auto-retry on failure up to 3 times
+    if (loadPlacesRetries < MAX_LOAD_RETRIES) {
+      loadPlacesRetries++;
+      console.log(`Retrying loadPlaces (attempt ${loadPlacesRetries})...`);
+      await new Promise(r => setTimeout(r, 2000 * loadPlacesRetries));
+      return loadPlaces();
+    }
   }
 
   refreshAllTags();
   renderPins();
+}
+
+async function refreshLocations() {
+  loadPlacesRetries = 0;
+  await loadPlaces();
+}
+
+const refreshLocationsBtn = document.getElementById("refreshLocationsBtn");
+if (refreshLocationsBtn) {
+  refreshLocationsBtn.addEventListener("click", refreshLocations);
 }
 
 async function init() {
