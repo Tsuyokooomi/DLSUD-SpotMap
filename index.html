@@ -137,7 +137,10 @@
   <!-- Admin Modal (Add / Edit Place) -->
   <div class="modal-backdrop" id="placeModal" style="display: none;">
     <div class="modal-card modal-card-wide">
-      <button class="modal-close-btn" id="placeModalCloseBtn" aria-label="Close modal">×</button>
+      <div class="modal-header-actions">
+        <button type="button" class="modal-control-btn" id="placeModalMinBtn" aria-label="Minimize modal" title="Minimize to map">−</button>
+        <button type="button" class="modal-control-btn" id="placeModalCloseBtn" aria-label="Close modal" title="Close">×</button>
+      </div>
       <h2 class="modal-title" id="placeModalTitle">Add New Spot</h2>
       <p class="modal-subtitle">Add a pin to the SpotMap</p>
 
@@ -204,13 +207,23 @@
     </div>
   </div>
 
+  <!-- Minimized Modal Dock Pill -->
+  <div class="minimized-dock-pill" id="minimizedPlacePill" style="display: none;">
+    <div class="minimized-dock-content" id="restorePlaceModalBtn" title="Click to expand modal">
+      <span class="minimized-dock-dot"></span>
+      <span class="minimized-dock-text" id="minimizedPillTitle">Adding Spot (Click to expand)</span>
+      <span class="minimized-dock-expand-icon">↗</span>
+    </div>
+    <button type="button" class="minimized-dock-close" id="closeMinimizedPlaceBtn" title="Discard and close">×</button>
+  </div>
+
   <!-- Floating Bar during Map Pin Dragging / Picking -->
   <div class="map-picker-banner" id="mapPickerBanner" style="display: none;">
     <div class="map-picker-banner-content">
       <div class="map-picker-info">
         <span class="map-picker-pulse"></span>
         <div class="map-picker-text-wrap">
-          <div class="map-picker-title">Drag the pin or click on the map</div>
+          <div class="map-picker-title" id="mapPickerTitle">Drag the pin or click on the map</div>
           <div class="map-picker-coords" id="pickerCoordsDisplay">Coordinates: —</div>
         </div>
       </div>

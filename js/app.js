@@ -539,6 +539,13 @@ let isPickingOnMap = false;
 const placeModal = document.getElementById("placeModal");
 const placeForm = document.getElementById("placeForm");
 const placeModalTitle = document.getElementById("placeModalTitle");
+const placeModalMinBtn = document.getElementById("placeModalMinBtn");
+const placeModalCloseBtn = document.getElementById("placeModalCloseBtn");
+const minimizedPlacePill = document.getElementById("minimizedPlacePill");
+const minimizedPillTitle = document.getElementById("minimizedPillTitle");
+const restorePlaceModalBtn = document.getElementById("restorePlaceModalBtn");
+const closeMinimizedPlaceBtn = document.getElementById("closeMinimizedPlaceBtn");
+
 const placeIdInput = document.getElementById("placeIdInput");
 const placeNameInput = document.getElementById("placeNameInput");
 const placeCategorySelect = document.getElementById("placeCategorySelect");
@@ -553,16 +560,17 @@ const placeSubmitBtn = document.getElementById("placeSubmitBtn");
 const useCurrentLocationBtn = document.getElementById("useCurrentLocationBtn");
 const pickOnMapBtn = document.getElementById("pickOnMapBtn");
 const mapPickerBanner = document.getElementById("mapPickerBanner");
+const mapPickerTitle = document.getElementById("mapPickerTitle");
 const pickerCoordsDisplay = document.getElementById("pickerCoordsDisplay");
 const confirmLocationBtn = document.getElementById("confirmLocationBtn");
 const cancelPickOnMapBtn = document.getElementById("cancelPickOnMapBtn");
 const locationStatusBadge = document.getElementById("locationStatusBadge");
 const locationStatusText = document.getElementById("locationStatusText");
 
-function makeAdminPickerIcon() {
+function makeAdminPickerIcon(isLanded = false) {
   return L.divIcon({
     className: "",
-    html: `<div class="admin-draggable-pin" title="Drag to adjust position"></div>`,
+    html: `<div class="admin-draggable-pin ${isLanded ? "pin-landed" : ""}" title="Drag to adjust position"></div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 32]
   });
@@ -576,11 +584,11 @@ function updateLocationUI(lat, lng, labelText) {
   pickerCoordsDisplay.textContent = `Coordinates: ${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}`;
 }
 
-function createOrUpdatePickerMarker(lat, lng) {
+function createOrUpdatePickerMarker(lat, lng, isLanded = false) {
   if (!adminPickerMarker) {
     adminPickerMarker = L.marker([lat, lng], {
       draggable: true,
-      icon: makeAdminPickerIcon(),
+      icon: makeAdminPickerIcon(isLanded),
       zIndexOffset: 1000
     }).addTo(map);
 
@@ -595,6 +603,7 @@ function createOrUpdatePickerMarker(lat, lng) {
     });
   } else {
     adminPickerMarker.setLatLng([lat, lng]);
+    adminPickerMarker.setIcon(makeAdminPickerIcon(isLanded));
   }
 }
 
@@ -605,7 +614,7 @@ function removePickerMarker() {
   }
 }
 
-// "Use My Current Location" via browser GPS
+// "Use My Current Location" via browser GPS — lands the pin on the map and shows location
 useCurrentLocationBtn.addEventListener("click", () => {
   if (!navigator.geolocation) {
     alert("Geolocation is not supported by your browser.");
@@ -613,7 +622,7 @@ useCurrentLocationBtn.addEventListener("click", () => {
   }
 
   useCurrentLocationBtn.disabled = true;
-  useCurrentLocationBtn.innerHTML = `<span>⏳</span> Locating…`;
+  useCurrentLocationBtn.innerHTML = `<span>⏳</span> Acquiring GPS…`;
 
   navigator.geolocation.getCurrentPosition(
     position => {
@@ -622,8 +631,18 @@ useCurrentLocationBtn.addEventListener("click", () => {
       const { latitude, longitude } = position.coords;
 
       updateLocationUI(latitude, longitude, `GPS Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
-      createOrUpdatePickerMarker(latitude, longitude);
-      map.setView([latitude, longitude], 16);
+      createOrUpdatePickerMarker(latitude, longitude, true);
+
+      // Smoothly fly to where the pin landed on the map
+      map.flyTo([latitude, longitude], 17, { duration: 1.2 });
+
+      // Show the floating banner so the user can clearly see where the pin landed
+      isPickingOnMap = true;
+      placeModal.style.display = "none";
+      if (mapPickerTitle) {
+        mapPickerTitle.textContent = "📍 Pin landed at your location! Drag to fine-tune.";
+      }
+      mapPickerBanner.style.display = "block";
     },
     err => {
       useCurrentLocationBtn.disabled = false;
@@ -638,6 +657,9 @@ useCurrentLocationBtn.addEventListener("click", () => {
 pickOnMapBtn.addEventListener("click", () => {
   isPickingOnMap = true;
   placeModal.style.display = "none";
+  if (mapPickerTitle) {
+    mapPickerTitle.textContent = "Drag the pin or click on the map";
+  }
   mapPickerBanner.style.display = "block";
 
   // Use existing coords or center of the map
@@ -686,6 +708,37 @@ cancelPickOnMapBtn.addEventListener("click", () => {
   }
 });
 
+// ---------- Minimize & Restore Modal ----------
+
+function minimizePlaceModal() {
+  placeModal.style.display = "none";
+  const name = placeNameInput.value.trim();
+  const isEdit = Boolean(placeIdInput.value);
+  minimizedPillTitle.textContent = name
+    ? `${isEdit ? "Editing" : "Adding"}: "${name}"`
+    : (isEdit ? "Editing Spot (Click to expand)" : "Adding Spot (Click to expand)");
+  minimizedPlacePill.style.display = "flex";
+}
+
+function restorePlaceModal() {
+  minimizedPlacePill.style.display = "none";
+  placeModal.style.display = "flex";
+}
+
+if (placeModalMinBtn) {
+  placeModalMinBtn.addEventListener("click", minimizePlaceModal);
+}
+
+if (restorePlaceModalBtn) {
+  restorePlaceModalBtn.addEventListener("click", restorePlaceModal);
+}
+
+if (closeMinimizedPlaceBtn) {
+  closeMinimizedPlaceBtn.addEventListener("click", () => {
+    closePlaceModal();
+  });
+}
+
 function openPlaceModal(editPlace = null) {
   if (!State.isAdmin()) {
     alert("Admin access required.");
@@ -693,6 +746,7 @@ function openPlaceModal(editPlace = null) {
   }
 
   placeModalError.style.display = "none";
+  minimizedPlacePill.style.display = "none";
 
   if (editPlace) {
     placeModalTitle.textContent = "Edit Spot";
@@ -729,12 +783,15 @@ function openPlaceModal(editPlace = null) {
 function closePlaceModal() {
   placeModal.style.display = "none";
   mapPickerBanner.style.display = "none";
+  minimizedPlacePill.style.display = "none";
   isPickingOnMap = false;
   removePickerMarker();
 }
 
 document.getElementById("adminBtn").addEventListener("click", () => openPlaceModal());
-document.getElementById("placeModalCloseBtn").addEventListener("click", closePlaceModal);
+if (placeModalCloseBtn) {
+  placeModalCloseBtn.addEventListener("click", closePlaceModal);
+}
 
 placeForm.addEventListener("submit", async e => {
   e.preventDefault();
