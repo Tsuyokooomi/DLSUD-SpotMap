@@ -4,7 +4,7 @@ SpotMap is a location-pinning web app for Dasmariñas, Cavite. It shows food spo
 
 ## Live Demo
 
-- Frontend: deployed on GitHub Pages
+- Frontend: deployed on Vercel
 - Backend: deployed on Render
 
 ## Features
