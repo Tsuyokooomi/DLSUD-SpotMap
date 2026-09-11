@@ -1072,8 +1072,14 @@ if (removeImageBtn) {
 }
 
 function openPlaceModal(editPlace = null) {
-  if (!State.isAdmin()) {
-    alert("Admin access required.");
+  // Editing existing spots is admin-only; suggesting a new spot is open to any logged-in user.
+  const isAdmin = State.isAdmin();
+  if (editPlace && !isAdmin) {
+    alert("Only admins can edit spots.");
+    return;
+  }
+  if (!State.isLoggedIn()) {
+    openAuthModal("login", "Please log in to add a spot.");
     return;
   }
 
@@ -1123,7 +1129,7 @@ function openPlaceModal(editPlace = null) {
       existingMenuItems.forEach(item => buildMenuItemRow(item));
     }
   } else {
-    placeModalTitle.textContent = "Add New Spot";
+    placeModalTitle.textContent = isAdmin ? "Add New Spot" : "Suggest New Spot";
     placeIdInput.value = "";
     placeNameInput.value = "";
     placeCategorySelect.value = "food";
@@ -1132,7 +1138,7 @@ function openPlaceModal(editPlace = null) {
     placeLngInput.value = "";
     placeAddressInput.value = "";
     placeDescInput.value = "";
-    placeSubmitBtn.textContent = "Save Spot";
+    placeSubmitBtn.textContent = isAdmin ? "Save Spot" : "Submit for Review";
 
     locationStatusBadge.classList.remove("has-location");
     locationStatusText.textContent = "No location selected (use buttons below)";
@@ -1335,7 +1341,8 @@ placeForm.addEventListener("submit", async e => {
     placeModalError.style.display = "block";
   } finally {
     placeSubmitBtn.disabled = false;
-    placeSubmitBtn.textContent = id ? "Update Spot" : "Save Spot";
+    const isAdminMode = id || State.isAdmin();
+    placeSubmitBtn.textContent = isAdminMode ? (id ? "Update Spot" : "Save Spot") : "Submit for Review";
   }
 });
 
