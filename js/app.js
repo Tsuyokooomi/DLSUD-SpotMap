@@ -73,6 +73,15 @@ function openCard(place) {
   node.querySelector(".place-card-address").textContent = place.address;
   node.querySelector(".place-card-desc").textContent = place.description || "No description provided.";
 
+  // Image handling in place card
+  const imageWrap = node.querySelector(".place-card-image-wrap");
+  const imageEl = node.querySelector(".place-card-image");
+  if (place.imageUrl && imageWrap && imageEl) {
+    imageEl.src = place.imageUrl;
+    imageWrap.style.display = "block";
+    imageEl.onerror = () => { imageWrap.style.display = "none"; };
+  }
+
   // Admin controls
   const adminControls = node.querySelector(".place-admin-controls");
   if (adminControls && State.isAdmin()) {
@@ -554,6 +563,13 @@ const placeLatInput = document.getElementById("placeLatInput");
 const placeLngInput = document.getElementById("placeLngInput");
 const placeAddressInput = document.getElementById("placeAddressInput");
 const placeDescInput = document.getElementById("placeDescInput");
+const placeImageUrlInput = document.getElementById("placeImageUrlInput");
+const placeFileInput = document.getElementById("placeFileInput");
+const imageDropzone = document.getElementById("imageDropzone");
+const imagePreviewCard = document.getElementById("imagePreviewCard");
+const imagePreviewImg = document.getElementById("imagePreviewImg");
+const imagePreviewName = document.getElementById("imagePreviewName");
+const removeImageBtn = document.getElementById("removeImageBtn");
 const placeModalError = document.getElementById("placeModalError");
 const placeSubmitBtn = document.getElementById("placeSubmitBtn");
 
@@ -739,6 +755,87 @@ if (closeMinimizedPlaceBtn) {
   });
 }
 
+function resetImagePicker() {
+  if (placeImageUrlInput) placeImageUrlInput.value = "";
+  if (placeFileInput) placeFileInput.value = "";
+  if (imageDropzone) imageDropzone.style.display = "block";
+  if (imagePreviewCard) imagePreviewCard.style.display = "none";
+}
+
+function showImagePreviewLocal(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    if (imagePreviewImg) imagePreviewImg.src = reader.result;
+    if (imagePreviewName) imagePreviewName.textContent = file.name;
+    if (imageDropzone) imageDropzone.style.display = "none";
+    if (imagePreviewCard) imagePreviewCard.style.display = "flex";
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadToCloudinary(file) {
+  if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
+    throw new Error("Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET in config.js");
+  }
+
+  const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+  const response = await fetch(endpoint, { method: "POST", body: formData });
+
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("Invalid response from Cloudinary");
+  }
+
+  if (!response.ok || !data.secure_url) {
+    const msg = (data && data.error && data.error.message) || "Image upload failed";
+    throw new Error(msg);
+  }
+
+  return data.secure_url;
+}
+
+if (imageDropzone && placeFileInput) {
+  imageDropzone.addEventListener("click", () => placeFileInput.click());
+
+  imageDropzone.addEventListener("dragover", e => {
+    e.preventDefault();
+    imageDropzone.classList.add("dragover");
+  });
+
+  imageDropzone.addEventListener("dragleave", () => {
+    imageDropzone.classList.remove("dragover");
+  });
+
+  imageDropzone.addEventListener("drop", e => {
+    e.preventDefault();
+    imageDropzone.classList.remove("dragover");
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file && file.type && file.type.startsWith("image/")) {
+      showImagePreviewLocal(file);
+    }
+  });
+
+  placeFileInput.addEventListener("change", () => {
+    const file = placeFileInput.files && placeFileInput.files[0];
+    if (file) {
+      showImagePreviewLocal(file);
+    }
+  });
+}
+
+if (removeImageBtn) {
+  removeImageBtn.addEventListener("click", e => {
+    e.preventDefault();
+    resetImagePicker();
+  });
+}
+
 function openPlaceModal(editPlace = null) {
   if (!State.isAdmin()) {
     alert("Admin access required.");
@@ -760,6 +857,16 @@ function openPlaceModal(editPlace = null) {
 
     updateLocationUI(editPlace.lat, editPlace.lng, `Spot Location (${parseFloat(editPlace.lat).toFixed(4)}, ${parseFloat(editPlace.lng).toFixed(4)})`);
     createOrUpdatePickerMarker(editPlace.lat, editPlace.lng);
+
+    if (editPlace.imageUrl && imagePreviewImg && imageDropzone && imagePreviewCard && imagePreviewName) {
+      placeImageUrlInput.value = editPlace.imageUrl;
+      imagePreviewImg.src = editPlace.imageUrl;
+      imagePreviewName.textContent = "Existing photo URL";
+      imageDropzone.style.display = "none";
+      imagePreviewCard.style.display = "flex";
+    } else {
+      resetImagePicker();
+    }
   } else {
     placeModalTitle.textContent = "Add New Spot";
     placeIdInput.value = "";
@@ -775,6 +882,7 @@ function openPlaceModal(editPlace = null) {
     locationStatusBadge.classList.remove("has-location");
     locationStatusText.textContent = "No location selected (use buttons below)";
     removePickerMarker();
+    resetImagePicker();
   }
 
   placeModal.style.display = "flex";
@@ -815,10 +923,19 @@ placeForm.addEventListener("submit", async e => {
     return;
   }
 
-  const payload = { name, category, tags, lat, lng, address, description };
-
   try {
     placeSubmitBtn.disabled = true;
+    placeSubmitBtn.textContent = "Uploading image…";
+
+    let imageUrl = placeImageUrlInput ? placeImageUrlInput.value.trim() : "";
+    const file = placeFileInput && placeFileInput.files && placeFileInput.files[0];
+
+    if (file) {
+      imageUrl = await uploadToCloudinary(file);
+    }
+
+    const payload = { name, category, tags, lat, lng, address, description, imageUrl };
+
     placeSubmitBtn.textContent = "Saving...";
 
     let savedPlace;
