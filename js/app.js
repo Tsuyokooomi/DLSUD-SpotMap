@@ -1190,10 +1190,6 @@ function statusBadge(status) {
   return `<span class="place-status-badge ${cls}">${cls}</span>`;
 }
 
-function staticMapUrl(lat, lng, zoom = 16) {
-  return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=${zoom}&size=380x160&maptype=mapnik&markers=${lat},${lng},red-pushpin`;
-}
-
 function closeAllPanels() {
   if (reviewPanel) reviewPanel.style.display = "none";
   if (mySuggestPanel) mySuggestPanel.style.display = "none";
@@ -1223,7 +1219,6 @@ async function openReviewPanel() {
           <div class="review-panel-item-name">${escapeHtml(place.name)} ${statusBadge(place.status)}</div>
           <div class="review-panel-item-meta">${place.category} · ${escapeHtml(place.address || "No address")}</div>
           <div class="review-panel-item-coords">${coordText}</div>
-          <img class="review-panel-item-map" src="${staticMapUrl(place.lat, place.lng)}" alt="Map preview" loading="lazy">
           <div class="review-panel-item-desc">${escapeHtml(place.description || "No description")}</div>
           ${place.imageUrl ? `<img class="review-panel-item-img" src="${place.imageUrl}" alt="Suggestion photo">` : ""}
           ${place.menuImageUrl ? `<div class="review-panel-item-menu"><strong>Menu:</strong> <a href="${place.menuImageUrl}" target="_blank" rel="noopener">View menu image</a></div>` : ""}
@@ -1296,7 +1291,6 @@ async function openMySuggestPanel() {
           <div class="review-panel-item-name">${escapeHtml(place.name)} ${statusBadge(place.status)}</div>
           <div class="review-panel-item-meta">${place.category} · ${escapeHtml(place.address || "No address")}</div>
           <div class="review-panel-item-coords">📍 ${parseFloat(place.lat).toFixed(5)}, ${parseFloat(place.lng).toFixed(5)}</div>
-          <img class="review-panel-item-map" src="${staticMapUrl(place.lat, place.lng)}" alt="Map preview" loading="lazy">
           <div class="review-panel-item-desc">${escapeHtml(place.description || "No description")}</div>
         </div>
         <div class="review-panel-item-actions">
