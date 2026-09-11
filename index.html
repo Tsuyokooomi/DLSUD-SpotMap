@@ -27,9 +27,13 @@
       <div class="search-results" id="searchResults"></div>
     </div>
 
-    <div class="topbar-actions">
+    <div class="topbar-actions" id="topbarActions">
+      <div id="userProfile" class="user-profile" style="display: none;">
+        <span class="user-email" id="userEmailBadge"></span>
+      </div>
       <button class="btn btn-ghost" id="loginBtn">Log in</button>
-      <button class="btn btn-primary" id="adminBtn">Admin</button>
+      <button class="btn btn-primary" id="adminBtn" style="display: none;">+ Add Spot</button>
+      <button class="btn btn-ghost" id="logoutBtn" style="display: none;">Log out</button>
     </div>
   </header>
 
@@ -73,7 +77,13 @@
       <div class="place-card-edge"></div>
       <button class="place-card-close" aria-label="Close">×</button>
       <div class="place-card-body">
-        <span class="place-card-category"></span>
+        <div class="place-card-header">
+          <span class="place-card-category"></span>
+          <div class="place-admin-controls" style="display: none;">
+            <button class="btn-card-action place-edit-btn" title="Edit spot">Edit</button>
+            <button class="btn-card-action place-delete-btn" title="Delete spot">Delete</button>
+          </div>
+        </div>
         <h2 class="place-card-title"></h2>
         <p class="place-card-address"></p>
         <div class="place-card-tags"></div>
@@ -89,7 +99,7 @@
         </div>
 
         <div class="place-card-comments">
-          <h3>Your notes</h3>
+          <h3>Community Notes</h3>
           <div class="comment-list"></div>
           <div class="comment-add">
             <input type="text" class="comment-input" placeholder="Add a note about this place...">
@@ -100,9 +110,94 @@
     </div>
   </template>
 
+  <!-- Auth Modal (Log in / Sign up) -->
+  <div class="modal-backdrop" id="authModal" style="display: none;">
+    <div class="modal-card">
+      <button class="modal-close-btn" id="authCloseBtn" aria-label="Close modal">×</button>
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tabLogin">Log In</button>
+        <button class="modal-tab" id="tabSignup">Sign Up</button>
+      </div>
+
+      <form id="authForm" class="modal-form">
+        <div class="form-group">
+          <label for="authEmail">Email</label>
+          <input type="email" id="authEmail" placeholder="you@dlsud.edu.ph" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="authPassword">Password</label>
+          <input type="password" id="authPassword" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <div class="form-error" id="authError" style="display: none;"></div>
+        <button type="submit" class="btn btn-primary form-submit-btn" id="authSubmitBtn">Log In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Modal (Add / Edit Place) -->
+  <div class="modal-backdrop" id="placeModal" style="display: none;">
+    <div class="modal-card modal-card-wide">
+      <button class="modal-close-btn" id="placeModalCloseBtn" aria-label="Close modal">×</button>
+      <h2 class="modal-title" id="placeModalTitle">Add New Spot</h2>
+      <p class="modal-subtitle">Add a pin to the SpotMap</p>
+
+      <form id="placeForm" class="modal-form">
+        <input type="hidden" id="placeIdInput" value="">
+        
+        <div class="form-group">
+          <label for="placeNameInput">Spot Name *</label>
+          <input type="text" id="placeNameInput" placeholder="e.g. Grumpy Joe Coffee" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="placeCategorySelect">Category *</label>
+            <select id="placeCategorySelect" required>
+              <option value="food">Food</option>
+              <option value="cafe">Cafe</option>
+              <option value="mall">Mall</option>
+              <option value="hangout">Hangout</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="placeTagsInput">Tags (comma-separated)</label>
+            <input type="text" id="placeTagsInput" placeholder="Coffee, Study spot, Wifi">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="placeLatInput">Latitude *</label>
+            <input type="number" step="any" id="placeLatInput" placeholder="14.3294" required>
+          </div>
+          <div class="form-group">
+            <label for="placeLngInput">Longitude *</label>
+            <input type="number" step="any" id="placeLngInput" placeholder="120.9367" required>
+          </div>
+        </div>
+        <div class="form-hint">Tip: You can also click anywhere on the map while this modal is open to fill coordinates.</div>
+
+        <div class="form-group">
+          <label for="placeAddressInput">Address / Landmark *</label>
+          <input type="text" id="placeAddressInput" placeholder="e.g. Aguinaldo Hwy, Dasmariñas, Cavite" required>
+        </div>
+
+        <div class="form-group">
+          <label for="placeDescInput">Description</label>
+          <textarea id="placeDescInput" rows="3" placeholder="Brief description of the place, highlights, vibes..."></textarea>
+        </div>
+
+        <div class="form-error" id="placeModalError" style="display: none;"></div>
+        <button type="submit" class="btn btn-primary form-submit-btn" id="placeSubmitBtn">Save Spot</button>
+      </form>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="js/data.js"></script>
   <script src="js/config.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/data.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
