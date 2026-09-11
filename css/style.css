@@ -238,6 +238,101 @@ html, body {
   flex-shrink: 0;
 }
 
+/* ---------- Mobile Search Bar (shown on small screens, overlays map) ---------- */
+
+.mobile-search-bar {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  padding: 8px 12px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 4px 12px rgba(28, 38, 36, 0.08);
+  z-index: 998;
+}
+
+.mobile-search-wrap {
+  display: flex;
+  gap: 8px;
+}
+
+#mobileSearchInput {
+  flex: 1;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  background: var(--base);
+  color: var(--ink);
+}
+
+#mobileSearchInput:focus {
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+}
+
+.mobile-search-btn {
+  height: 38px;
+  flex-shrink: 0;
+}
+
+.mobile-search-results {
+  display: none;
+  position: absolute;
+  top: calc(100% - 4px);
+  left: 12px;
+  right: 12px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  z-index: 1002;
+}
+
+.mobile-search-results.open {
+  display: block;
+}
+
+.mobile-search-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--line);
+}
+
+.mobile-search-result:last-child { border-bottom: none; }
+
+.mobile-search-result:hover { background: var(--base); }
+
+.mobile-search-result-info {
+  min-width: 0;
+}
+
+.mobile-search-result-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.mobile-search-result-meta {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.mobile-search-empty {
+  padding: 14px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
 .tag-filter-panel {
   display: none;
   position: fixed;
@@ -1982,6 +2077,12 @@ html, body {
     border-radius: 0;
     border-left: none;
     border-right: none;
+  }
+
+  /* Mobile search bar under the filters, overlaying the map */
+  .mobile-search-bar {
+    display: block;
+    top: 102px; /* below topbar (56px) + filter chips (46px) */
   }
 
   .filters {
