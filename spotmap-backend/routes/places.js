@@ -18,7 +18,9 @@ router.get("/", async (req, res) => {
       } catch {}
     }
 
-    const filter = isAdmin ? {} : { status: "approved" };
+    // Admins see approved + pending; regular users see only approved.
+    // Rejected spots are never shown on the map.
+    const filter = isAdmin ? { status: { $in: ["approved", "pending"] } } : { status: "approved" };
     const places = await Place.find(filter);
     res.json(places);
   } catch (err) {
