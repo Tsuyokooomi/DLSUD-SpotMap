@@ -364,5 +364,24 @@
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
   <script defer src="/_vercel/insights/script.js"></script>
+
+  <!-- Image Lightbox (full-screen zoom viewer) -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightbox-backdrop" id="lightboxBackdrop"></div>
+    <div class="lightbox-toolbar">
+      <span class="lightbox-counter" id="lightboxCounter"></span>
+      <div class="lightbox-toolbar-buttons">
+        <button type="button" class="lightbox-btn" id="lightboxZoomOut" title="Zoom out">−</button>
+        <button type="button" class="lightbox-btn" id="lightboxZoomReset" title="Reset zoom">⤢</button>
+        <button type="button" class="lightbox-btn" id="lightboxZoomIn" title="Zoom in">+</button>
+        <button type="button" class="lightbox-btn lightbox-btn-close" id="lightboxClose" title="Close (Esc)">✕</button>
+      </div>
+    </div>
+    <button type="button" class="lightbox-nav lightbox-prev" id="lightboxPrev" title="Previous image">‹</button>
+    <button type="button" class="lightbox-nav lightbox-next" id="lightboxNext" title="Next image">›</button>
+    <div class="lightbox-stage" id="lightboxStage">
+      <img class="lightbox-img" id="lightboxImg" src="" alt="Zoomed menu image">
+    </div>
+  </div>
 </body>
 </html>
