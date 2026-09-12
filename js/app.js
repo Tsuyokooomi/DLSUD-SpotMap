@@ -1854,7 +1854,7 @@ function lightboxResetZoom() {
   lightboxState.zoom = 1;
   lightboxState.panX = 0;
   lightboxState.panY = 0;
-  if (lightboxImgEl) lightboxImgEl.style.transform = "none";
+  if (lightboxImgEl) lightboxImgEl.style.transform = "";
 }
 
 function lightboxApplyTransform() {
