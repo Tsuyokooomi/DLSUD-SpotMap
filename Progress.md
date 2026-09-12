@@ -43,7 +43,7 @@ HTML/CSS/JS frontend (deploy target: Vercel + Render).
 
 ### Image & Menu Uploads
 - Spot photo upload via Cloudinary (drag/drop or click)
-- Full menu image upload
+- Multiple full menu image uploads (select or drag several images; gallery preview with per-image removal, render as a stacked list on cards)
 - Individual menu items with name, price, optional photo
 - All images stored as Cloudinary URLs in MongoDB
 
@@ -112,7 +112,7 @@ DLSUD-SpotMap/
     │   └── auth.js               # requireAuth, requireAdmin
     ├── models/
     │   ├── User.js                 # email, passwordHash, role
-    │   ├── Place.js                 # name, category, tags, lat, lng, address, description, imageUrl, menuImageUrl, menuItems, status, createdBy
+    │   ├── Place.js                 # name, category, tags, lat, lng, address, description, imageUrl, menuImageUrls, menuItems, status, createdBy
     │   ├── Comment.js               # place, user, text, createdAt
     │   └── SavedPlace.js            # user, place, type (star/togo), unique index
     └── routes/

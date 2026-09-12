@@ -53,11 +53,13 @@ router.get("/:id", async (req, res) => {
 // POST /api/places - authenticated users can suggest (pending), admins create approved spots
 router.post("/", requireAuth, async (req, res) => {
   try {
-    const { name, category, tags, lat, lng, address, description, imageUrl, menuImageUrl, menuItems } = req.body;
+    const { name, category, tags, lat, lng, address, description, imageUrl, menuImageUrls, menuItems } = req.body;
     const isAdmin = req.user.role === "admin";
 
     const place = await Place.create({
-      name, category, tags, lat, lng, address, description, imageUrl, menuImageUrl, menuItems,
+      name, category, tags, lat, lng, address, description, imageUrl,
+      menuImageUrls: Array.isArray(menuImageUrls) ? menuImageUrls.filter(url => url) : [],
+      menuItems,
       status: isAdmin ? "approved" : "pending",
       createdBy: req.user.id
     });

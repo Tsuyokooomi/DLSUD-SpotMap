@@ -83,15 +83,18 @@ function openCard(place) {
   const menuItems = Array.isArray(place.menuItems) ? place.menuItems : [];
   if (menuWrap && menuList) {
     menuList.innerHTML = "";
-    const hasMenuImage = Boolean(place.menuImageUrl);
+    const menuImageUrls = Array.isArray(place.menuImageUrls) ? place.menuImageUrls.filter(url => url) : [];
+    const hasMenuImage = menuImageUrls.length > 0;
     const hasMenuList = menuItems.length > 0;
     if (hasMenuImage || hasMenuList) {
       menuWrap.style.display = "block";
       if (hasMenuImage) {
-        const banner = document.createElement("div");
-        banner.className = "place-card-menu-banner";
-        banner.innerHTML = `<img src="${place.menuImageUrl}" alt="Menu image" style="width:100%;height:180px;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block;">`;
-        menuList.appendChild(banner);
+        menuImageUrls.forEach(url => {
+          const banner = document.createElement("div");
+          banner.className = "place-card-menu-banner";
+          banner.innerHTML = `<img src="${url}" alt="Menu image" style="width:100%;height:180px;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block;">`;
+          menuList.appendChild(banner);
+        });
       }
       menuItems.forEach(item => {
         const card = document.createElement("div");
@@ -855,12 +858,12 @@ const addMenuItemBtn = document.getElementById("addMenuItemBtn");
 const menuImageUrlInput = document.getElementById("menuImageUrlInput");
 const menuFileInput = document.getElementById("menuFileInput");
 const menuUploadDropzone = document.getElementById("menuUploadDropzone");
-const menuUploadPreview = document.getElementById("menuUploadPreview");
-const menuUploadPreviewImg = document.getElementById("menuUploadPreviewImg");
-const menuUploadPreviewName = document.getElementById("menuUploadPreviewName");
-const removeMenuImageBtn = document.getElementById("removeMenuImageBtn");
+const menuUploadGallery = document.getElementById("menuUploadGallery");
 let menuItemIdCounter = 0;
 const menuItemFiles = new Map();
+let menuImageIdCounter = 0;
+const menuImageFiles = new Map();    // tempId -> File (newly selected images)
+const menuImageExisting = new Map(); // tempId -> URL (already saved images, edit mode)
 
 const useCurrentLocationBtn = document.getElementById("useCurrentLocationBtn");
 const pickOnMapBtn = document.getElementById("pickOnMapBtn");
@@ -1045,21 +1048,78 @@ if (closeMinimizedPlaceBtn) {
 }
 
 function resetMenuImagePicker() {
-  if (menuImageUrlInput) menuImageUrlInput.value = "";
+  menuImageFiles.clear();
+  menuImageExisting.clear();
+  if (menuImageUrlInput) menuImageUrlInput.value = "[]";
   if (menuFileInput) menuFileInput.value = "";
   if (menuUploadDropzone) menuUploadDropzone.style.display = "block";
-  if (menuUploadPreview) menuUploadPreview.style.display = "none";
+  if (menuUploadGallery) {
+    menuUploadGallery.innerHTML = "";
+    menuUploadGallery.style.display = "none";
+  }
 }
 
-function showMenuImagePreviewLocal(file) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    if (menuUploadPreviewImg) menuUploadPreviewImg.src = reader.result;
-    if (menuUploadPreviewName) menuUploadPreviewName.textContent = file.name;
-    if (menuUploadDropzone) menuUploadDropzone.style.display = "none";
-    if (menuUploadPreview) menuUploadPreview.style.display = "flex";
-  };
-  reader.readAsDataURL(file);
+function renderMenuUploadGallery() {
+  if (!menuUploadGallery) return;
+  const total = menuImageFiles.size + menuImageExisting.size;
+  if (total === 0) {
+    menuUploadGallery.innerHTML = "";
+    menuUploadGallery.style.display = "none";
+    if (menuUploadDropzone) menuUploadDropzone.style.display = "block";
+    return;
+  }
+
+  if (menuUploadDropzone) menuUploadDropzone.style.display = "block";
+  if (menuUploadGallery) menuUploadGallery.style.display = "flex";
+
+  menuUploadGallery.innerHTML = "";
+
+  menuImageExisting.forEach((url, id) => {
+    const tile = document.createElement("div");
+    tile.className = "menu-upload-tile";
+    tile.innerHTML = `
+      <img class="menu-upload-tile-img" src="${url}" alt="Existing menu image" loading="lazy">
+      <button type="button" class="menu-upload-tile-remove" data-purpose="existing" data-id="${id}" title="Remove this image">✕</button>
+      <div class="menu-upload-tile-label">Saved</div>
+    `;
+    menuUploadGallery.appendChild(tile);
+  });
+
+  menuImageFiles.forEach((file, id) => {
+    const tile = document.createElement("div");
+    tile.className = "menu-upload-tile";
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = tile.querySelector(".menu-upload-tile-img");
+      if (img) img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+    tile.innerHTML = `
+      <img class="menu-upload-tile-img" src="" alt="Menu image preview">
+      <button type="button" class="menu-upload-tile-remove" data-purpose="new" data-id="${id}" title="Remove this image">✕</button>
+      <div class="menu-upload-tile-label">${escapeHtml(file.name)}</div>
+    `;
+    menuUploadGallery.appendChild(tile);
+  });
+}
+
+function removeMenuImageFromGallery(purpose, id) {
+  if (purpose === "existing") {
+    menuImageExisting.delete(id);
+  } else {
+    menuImageFiles.delete(id);
+  }
+  renderMenuUploadGallery();
+}
+
+function addMenuImageFiles(fileList) {
+  if (!fileList) return;
+  const files = Array.from(fileList).filter(f => f && f.type && f.type.startsWith("image/"));
+  files.forEach(file => {
+    const id = `menu-img-${menuImageIdCounter++}`;
+    menuImageFiles.set(id, file);
+  });
+  renderMenuUploadGallery();
 }
 
 if (menuUploadDropzone && menuFileInput) {
@@ -1077,23 +1137,22 @@ if (menuUploadDropzone && menuFileInput) {
     e.preventDefault();
     menuUploadDropzone.style.borderColor = "";
     menuUploadDropzone.style.background = "";
-    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-    if (file && file.type && file.type.startsWith("image/")) {
-      showMenuImagePreviewLocal(file);
-    }
+    addMenuImageFiles(e.dataTransfer && e.dataTransfer.files);
   });
   menuFileInput.addEventListener("change", () => {
-    const file = menuFileInput.files && menuFileInput.files[0];
-    if (file) {
-      showMenuImagePreviewLocal(file);
-    }
+    addMenuImageFiles(menuFileInput.files);
+    menuFileInput.value = "";
   });
 }
 
-if (removeMenuImageBtn) {
-  removeMenuImageBtn.addEventListener("click", e => {
+// Delegate remove clicks for dynamically-added gallery tiles
+if (menuUploadGallery) {
+  menuUploadGallery.addEventListener("click", e => {
+    const btn = e.target.closest(".menu-upload-tile-remove");
+    if (!btn) return;
     e.preventDefault();
-    resetMenuImagePicker();
+    e.stopPropagation();
+    removeMenuImageFromGallery(btn.dataset.purpose, btn.dataset.id);
   });
 }
 
@@ -1310,16 +1369,16 @@ function openPlaceModal(editPlace = null) {
       resetImagePicker();
     }
 
-    if (menuImageUrlInput && menuUploadPreviewImg && menuUploadDropzone && menuUploadPreview && menuUploadPreviewName) {
-      if (editPlace.menuImageUrl) {
-        menuImageUrlInput.value = editPlace.menuImageUrl;
-        menuUploadPreviewImg.src = editPlace.menuImageUrl;
-        menuUploadPreviewName.textContent = "Existing menu image";
-        menuUploadDropzone.style.display = "none";
-        menuUploadPreview.style.display = "flex";
-      } else {
-        resetMenuImagePicker();
-      }
+    if (menuImageUrlInput && menuUploadDropzone && menuUploadGallery) {
+      resetMenuImagePicker();
+      const existingMenuUrls = Array.isArray(editPlace.menuImageUrls)
+        ? editPlace.menuImageUrls.filter(url => url)
+        : [];
+      existingMenuUrls.forEach(url => {
+        const id = `menu-img-${menuImageIdCounter++}`;
+        menuImageExisting.set(id, url);
+      });
+      renderMenuUploadGallery();
     }
 
     resetMenuBuilder();
@@ -1417,7 +1476,7 @@ async function openReviewPanel() {
           <div class="review-panel-item-coords">${coordText}</div>
           <div class="review-panel-item-desc">${escapeHtml(place.description || "No description")}</div>
           ${place.imageUrl ? `<img class="review-panel-item-img" src="${place.imageUrl}" alt="Suggestion photo">` : ""}
-          ${place.menuImageUrl ? `<div class="review-panel-item-menu"><strong>Menu:</strong> <a href="${place.menuImageUrl}" target="_blank" rel="noopener">View menu image</a></div>` : ""}
+          ${Array.isArray(place.menuImageUrls) && place.menuImageUrls.length > 0 ? `<div class="review-panel-item-menu"><strong>Menu (${place.menuImageUrls.length}):</strong> ${place.menuImageUrls.filter(u => u).map(u => `<a href="${u}" target="_blank" rel="noopener">View menu image</a>`).join(" · ")}</div>` : ""}
           ${place.menuItems && place.menuItems.length > 0 ? `<div class="review-panel-item-menu">${place.menuItems.map(m => `• ${escapeHtml(m.name || "Item")}${m.price ? " — ₱" + escapeHtml(m.price) : ""}`).join("<br>")}</div>` : ""}
         </div>
         <div class="review-panel-item-actions">
@@ -1575,11 +1634,15 @@ placeForm.addEventListener("submit", async e => {
       imageUrl = await uploadToCloudinary(file);
     }
 
-    let menuImageUrl = menuImageUrlInput ? menuImageUrlInput.value.trim() : "";
-    const menuFile = menuFileInput && menuFileInput.files && menuFileInput.files[0];
-    if (menuFile) {
-      menuImageUrl = await uploadToCloudinary(menuFile);
+    let menuImageUrls = [];
+    for (const url of menuImageExisting.values()) {
+      menuImageUrls.push(url);
     }
+    for (const file of menuImageFiles.values()) {
+      const uploaded = await uploadToCloudinary(file);
+      menuImageUrls.push(uploaded);
+    }
+    menuImageUrls = menuImageUrls.filter(url => url);
 
     const menuItems = [];
     const rows = Array.from(menuBuilderList.querySelectorAll(".menu-item-row"));
@@ -1603,7 +1666,7 @@ placeForm.addEventListener("submit", async e => {
       }
     }
 
-    const payload = { name, category, tags, lat, lng, address, description, imageUrl, menuImageUrl, menuItems };
+    const payload = { name, category, tags, lat, lng, address, description, imageUrl, menuImageUrls, menuItems };
 
     placeSubmitBtn.textContent = "Saving...";
 
