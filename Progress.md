@@ -19,6 +19,7 @@ HTML/CSS/JS frontend (deploy target: Vercel + Render).
 - Full-screen Leaflet map centered on Dasmariñas, Cavite
 - Custom category-colored pins (Food / Cafe / Malls / Hangouts)
 - Place cards: slide in on pin click, show name, address, description, tags, photo, menu
+- Image lightbox: click any menu image banner for a full-screen viewer with zoom in/out, drag-to-pan, prev/next navigation, and keyboard shortcuts (Esc, arrows, +/−/0)
 
 ### Filters & Search
 - Category filter chips (All / Food / Cafe / Malls / Hangouts)

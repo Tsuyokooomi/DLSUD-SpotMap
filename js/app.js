@@ -1759,3 +1759,199 @@ async function init() {
 }
 
 init();
+
+/* ================================================================
+ * Menu Image Lightbox — full-screen zoom / pan viewer
+ *
+ * Clicking any "Menu image" banner on a place card opens a
+ * full-screen viewer. Zoom with + / − / reset buttons, mouse
+ * wheel (ctrl not required), or keyboard (+ / − / 0). Drag to
+ * pan when zoomed in. ‹ › buttons or ← / → keys navigate between
+ * the card's menu images. Esc or ✕ closes. Backdrop click closes.
+ * ================================================================ */
+
+const lightboxRoot = document.getElementById("lightbox");
+const lightboxBackdropEl = document.getElementById("lightboxBackdrop");
+const lightboxCounterEl = document.getElementById("lightboxCounter");
+const lightboxStageEl = document.getElementById("lightboxStage");
+const lightboxImgEl = document.getElementById("lightboxImg");
+const lightboxZoomInBtn = document.getElementById("lightboxZoomIn");
+const lightboxZoomResetBtn = document.getElementById("lightboxZoomReset");
+const lightboxZoomOutBtn = document.getElementById("lightboxZoomOut");
+const lightboxCloseBtn = document.getElementById("lightboxClose");
+const lightboxPrevBtn = document.getElementById("lightboxPrev");
+const lightboxNextBtn = document.getElementById("lightboxNext");
+
+const lightboxState = {
+  items: [],      // array of src URLs currently loaded
+  index: 0,       // current item index
+  zoom: 1,        // current scale
+  minZoom: 0.5,
+  maxZoom: 6,
+  panX: 0,
+  panY: 0,
+  dragging: false,
+  lastClientX: 0,
+  lastClientY: 0
+};
+
+function lightboxOpen(items, index) {
+  if (!lightboxRoot) return;
+  const urls = Array.isArray(items) ? items.filter(url => url) : [];
+  if (urls.length === 0) return;
+
+  lightboxState.items = urls;
+  lightboxState.index = Math.max(0, Math.min(index || 0, urls.length - 1));
+  lightboxResetZoom();
+  lightboxShowCurrent();
+
+  lightboxRoot.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function lightboxClose() {
+  if (!lightboxRoot) return;
+  lightboxRoot.classList.remove("open");
+  document.body.style.overflow = "";
+  lightboxResetZoom();
+}
+
+function lightboxShowCurrent() {
+  if (!lightboxImgEl) return;
+  const url = lightboxState.items[lightboxState.index];
+  if (!url) return;
+  lightboxImgEl.src = url;
+  if (lightboxCounterEl) {
+    lightboxCounterEl.textContent = `${lightboxState.index + 1} / ${lightboxState.items.length}`;
+  }
+  lightboxResetZoom();
+}
+
+function lightboxNext() {
+  const total = lightboxState.items.length;
+  if (total === 0) return;
+  lightboxState.index = (lightboxState.index + 1) % total;
+  lightboxShowCurrent();
+}
+
+function lightboxPrev() {
+  const total = lightboxState.items.length;
+  if (total === 0) return;
+  lightboxState.index = (lightboxState.index - 1 + total) % total;
+  lightboxShowCurrent();
+}
+
+function lightboxSetZoom(scale) {
+  if (!lightboxImgEl) return;
+  lightboxState.zoom = Math.max(
+    lightboxState.minZoom,
+    Math.min(lightboxState.maxZoom, scale)
+  );
+  lightboxApplyTransform();
+}
+
+function lightboxResetZoom() {
+  lightboxState.zoom = 1;
+  lightboxState.panX = 0;
+  lightboxState.panY = 0;
+  if (lightboxImgEl) lightboxImgEl.style.transform = "none";
+}
+
+function lightboxApplyTransform() {
+  if (!lightboxImgEl) return;
+  lightboxImgEl.style.transform =
+    `translate(calc(-50% + ${lightboxState.panX}px), calc(-50% + ${lightboxState.panY}px)) scale(${lightboxState.zoom})`;
+}
+
+// Open lightbox on banner clicks (delegated so it covers dynamically-rendered cards)
+document.addEventListener("click", e => {
+  const banner = e.target.closest && e.target.closest(".place-card-menu-banner");
+  if (!banner) return;
+  const card = banner.closest(".place-card-menu-wrap") || banner.closest(".place-card-menu");
+  if (!card) return;
+  const imgs = Array.from(card.querySelectorAll(".place-card-menu-banner img"));
+  const urls = imgs.map(img => img.getAttribute("src") || "").filter(Boolean);
+  if (urls.length === 0) return;
+  const clickedIndex = imgs.indexOf(e.target.closest("img"));
+  lightboxOpen(urls, clickedIndex >= 0 ? clickedIndex : 0);
+});
+
+if (lightboxZoomInBtn) {
+  lightboxZoomInBtn.addEventListener("click", () => lightboxSetZoom(lightboxState.zoom + 0.4));
+}
+if (lightboxZoomOutBtn) {
+  lightboxZoomOutBtn.addEventListener("click", () => lightboxSetZoom(lightboxState.zoom - 0.4));
+}
+if (lightboxZoomResetBtn) {
+  lightboxZoomResetBtn.addEventListener("click", () => lightboxResetZoom());
+}
+if (lightboxCloseBtn) {
+  lightboxCloseBtn.addEventListener("click", () => lightboxClose());
+}
+if (lightboxPrevBtn) {
+  lightboxPrevBtn.addEventListener("click", () => lightboxPrev());
+}
+if (lightboxNextBtn) {
+  lightboxNextBtn.addEventListener("click", () => lightboxNext());
+}
+
+// Drag to pan (only while zoomed; prevents text/cursor selection artifacts)
+if (lightboxStageEl) {
+  lightboxStageEl.addEventListener("mousedown", e => {
+    if (lightboxState.zoom <= 1.0 || e.target !== lightboxImgEl) return;
+    lightboxState.dragging = true;
+    lightboxStageEl.classList.add("dragging");
+    lightboxState.lastClientX = e.clientX;
+    lightboxState.lastClientY = e.clientY;
+    e.preventDefault();
+  });
+
+  lightboxStageEl.addEventListener("wheel", e => {
+    e.preventDefault();
+    const dir = e.deltaY < 0 ? 1 : -1;
+    lightboxSetZoom(lightboxState.zoom + dir * 0.25);
+  }, { passive: false });
+}
+
+window.addEventListener("mousemove", e => {
+  if (!lightboxState.dragging) return;
+  const dx = e.clientX - lightboxState.lastClientX;
+  const dy = e.clientY - lightboxState.lastClientY;
+  lightboxState.panX += dx;
+  lightboxState.panY += dy;
+  lightboxState.lastClientX = e.clientX;
+  lightboxState.lastClientY = e.clientY;
+  lightboxApplyTransform();
+});
+
+window.addEventListener("mouseup", () => {
+  if (lightboxState.dragging) {
+    lightboxState.dragging = false;
+    if (lightboxStageEl) lightboxStageEl.classList.remove("dragging");
+  }
+});
+
+// Close on backdrop click (stage click does nothing)
+if (lightboxRoot) {
+  lightboxRoot.addEventListener("click", e => {
+    if (e.target === lightboxBackdropEl) lightboxClose();
+  });
+}
+
+// Keyboard shortcuts while the lightbox is open
+document.addEventListener("keydown", e => {
+  if (!lightboxRoot || !lightboxRoot.classList.contains("open")) return;
+  if (e.key === "Escape") {
+    lightboxClose();
+  } else if (e.key === "ArrowRight") {
+    lightboxNext();
+  } else if (e.key === "ArrowLeft") {
+    lightboxPrev();
+  } else if (e.key === "+" || e.key === "=") {
+    lightboxSetZoom(lightboxState.zoom + 0.4);
+  } else if (e.key === "-" || e.key === "_") {
+    lightboxSetZoom(lightboxState.zoom - 0.4);
+  } else if (e.key === "0") {
+    lightboxResetZoom();
+  }
+});
