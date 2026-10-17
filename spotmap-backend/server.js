@@ -5,7 +5,21 @@ const cors = require("cors");
 
 const app = express();
 
-app.use(cors());
+// Only allow requests from approved sites.
+// Set ALLOWED_ORIGINS on Render, e.g. https://your-app.vercel.app
+// Separate several origins with commas.
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500")
+  .split(",")
+  .map(o => o.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin(origin, callback) {
+    // Allow tools with no Origin header (curl, health checks).
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
+  }
+}));
 app.use(express.json());
 
 // Connect to MongoDB using the connection string in .env
