@@ -425,6 +425,10 @@ function runSearch() {
 
 document.getElementById("searchBtn").addEventListener("click", runSearch);
 searchInput.addEventListener("keydown", e => { if (e.key === "Enter") runSearch(); });
+// Live search: update results on every keystroke (the list is already in memory, so it's instant)
+searchInput.addEventListener("input", runSearch);
+// Re-open the results when clicking back into a box that still has text
+searchInput.addEventListener("focus", () => { if (searchInput.value.trim()) runSearch(); });
 
 document.addEventListener("click", e => {
   if (!e.target.closest(".search-wrap")) {
@@ -492,6 +496,9 @@ if (mobileSearchBtn) {
 }
 if (mobileSearchInput) {
   mobileSearchInput.addEventListener("keydown", e => { if (e.key === "Enter") runMobileSearch(); });
+  // Live search: update results on every keystroke
+  mobileSearchInput.addEventListener("input", runMobileSearch);
+  mobileSearchInput.addEventListener("focus", () => { if (mobileSearchInput.value.trim()) runMobileSearch(); });
 }
 document.addEventListener("click", e => {
   if (mobileSearchResults && mobileSearchResults.classList.contains("open")) {
