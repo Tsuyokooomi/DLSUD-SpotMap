@@ -10,13 +10,13 @@ const app = express();
 // Separate several origins with commas.
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500")
   .split(",")
-  .map(o => o.trim())
+  .map(o => o.trim().replace(/\/+$/, "")) // strip trailing slashes (browsers never send them)
   .filter(Boolean);
 
 app.use(cors({
   origin(origin, callback) {
     // Allow tools with no Origin header (curl, health checks).
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    if (!origin || allowedOrigins.includes(origin.replace(/\/+$/, ""))) return callback(null, true);
     return callback(new Error("Not allowed by CORS"));
   }
 }));
